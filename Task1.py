@@ -4,27 +4,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Function to read and plot the signal from a text file
 def browse_file():
     file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
     if file_path:
         # Extract the file name from the path
-        selected_file = file_path.split("/")[-1]  # For Unix-like paths
-        # selected_file = file_path.split("\\")[-1]  # For Windows paths
+        selected_file = file_path.split("/")[-1]
+        # selected_file = file_path.split("\\")[-1]
         selected_file_label["text"] = selected_file
         data = read_signal_data(file_path)
         if data is not None:
             plot_signal(data)
 
 
-# Function to read the signal data from the text file
+
 def read_signal_data(file_path):
     try:
         with open(file_path, 'r') as file:
             lines = file.read().splitlines()
 
         if len(lines) < 3:
-            print("Invalid file format. The file should contain at least 3 lines.")
+            print("Invalid file format.")
             return None
 
         num_samples = int(lines[2])
@@ -45,7 +44,7 @@ def read_signal_data(file_path):
         return None
 
 
-# Function to plot the signal (both continuous and discrete)
+
 def plot_signal(data):
     if len(data) == 0:
         print("No data to plot.")
@@ -54,7 +53,7 @@ def plot_signal(data):
     index = [sample[0] for sample in data]
     amplitude = [sample[1] for sample in data]
 
-    plt.figure(figsize=(10, 4))
+    plt.figure(figsize=(10, 5))
 
     # Continuous representation
     plt.subplot(1, 2, 1)
@@ -77,9 +76,8 @@ def plot_signal(data):
     plt.show()
 
 
-# Function to generate and plot a sinusoidal or cosinusoidal signal
 def generate_signal():
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(12,5))
 
     signal_type = signal_type_combobox.get()
     A = float(A_entry.get())
@@ -99,16 +97,29 @@ def generate_signal():
         print("Invalid signal type.")
         return
 
-    plt.plot(t, signal, label=signal_label)
+    # Continuous representation
+    plt.subplot(1, 2, 1)
+    plt.plot(t, signal, label="")
     plt.xlabel("Time")
     plt.ylabel("Amplitude")
-    plt.title("Generated Signal")
+    plt.title("Continuous Signal Representation")
     plt.legend()
+
+    # Discrete representation
+    plt.subplot(1, 2, 2)
+    plt.stem(t, signal, linefmt='-b', markerfmt='ob', basefmt=' ', label="")
+    plt.xlabel("Sample Index")
+    plt.ylabel("Amplitude")
+    plt.title("Discrete Signal Representation")
     plt.grid(True)
+
+    plt.legend()
+
+
     plt.show()
 
 
-# Create the main window
+# main window
 root = tk.Tk()
 root.geometry("800x500")
 root.title("DSP Task 1")
@@ -119,16 +130,15 @@ header_label.pack(pady=20)
 upload_button = ttk.Button(root, text="Upload Text File", command=browse_file)
 upload_button.pack()
 
-# Label to display the selected file name
+# display the selected file name
 selected_file_label = ttk.Label(root)
 selected_file_label.pack(pady=10)
 
-# Create a combo box to select signal type
+# combo box to select signal type
 signal_type_combobox = ttk.Combobox(root, values=("sin", "cos"))
-signal_type_combobox.set("sin")
 signal_type_combobox.pack(pady=10)
 
-# Create entry fields for user input
+# entry fields for input
 A_label = ttk.Label(root, text="A:")
 A_label.pack()
 A_entry = ttk.Entry(root)
