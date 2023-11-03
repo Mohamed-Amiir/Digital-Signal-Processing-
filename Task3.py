@@ -3,6 +3,10 @@ from tkinter import filedialog, ttk
 import numpy as np
 import matplotlib.pyplot as plt
 
+def browse_file_3():
+    file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
+    if file_path:
+        selected_file_label["text"] = file_path
 def QuantizationTest1(file_name,Your_EncodedValues,Your_QuantizedValues):
     expectedEncodedValues=[]
     expectedQuantizedValues=[]
@@ -37,7 +41,7 @@ def QuantizationTest1(file_name,Your_EncodedValues,Your_QuantizedValues):
             print("QuantizationTest1 Test case failed, your QuantizedValues have different values from the expected one")
             return
     print("QuantizationTest1 Test case passed successfully")
-def read_signal_data(file_path):
+def read_signal_data_3(file_path):
     try:
         with open(file_path, 'r') as file:
             lines = file.read().splitlines()
@@ -62,9 +66,7 @@ def read_signal_data(file_path):
     except Exception as e:
         print("Error reading the file:", e)
         return None
-
-
-def quantize_signal(data, levels=None, num_bits=None):
+def quantize_signal_3(data, levels=None, num_bits=None): 
     if levels is None and num_bits is None:
         print("Please provide either levels or num_bits.")
         return None, None, None
@@ -85,18 +87,9 @@ def quantize_signal(data, levels=None, num_bits=None):
                           zip(data, quantized_signal)]
 
     return quantized_signal, quantization_error, levels
-
-
-
-def browse_file():
-    file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
-    if file_path:
-        selected_file_label["text"] = file_path
-
-
-def quantize_button():
+def quantize_button_3():
     file_path = selected_file_label["text"]
-    data = read_signal_data(file_path)
+    data = read_signal_data_3(file_path)
     if data is not None:
         quantization_type = quantization_type_var.get()
 
@@ -110,7 +103,7 @@ def quantize_button():
             print("Invalid quantization type.")
             return
 
-        quantized_signal, quantization_error, levels = quantize_signal(data, levels, num_bits)
+        quantized_signal, quantization_error, levels = quantize_signal_3(data, levels, num_bits)
 
         if quantized_signal is not None and quantization_error is not None:
             plt.figure(figsize=(12, 5))
@@ -165,7 +158,7 @@ root.title("Signal Quantization")
 header_label = ttk.Label(root, text="Signal Quantization", font=("Arial", 20))
 header_label.pack(pady=20)
 
-upload_button = ttk.Button(root, text="Browse Signal File", command=browse_file)
+upload_button = ttk.Button(root, text="Browse Signal File", command=browse_file_3)
 upload_button.pack()
 
 selected_file_label = ttk.Label(root)
@@ -194,7 +187,7 @@ num_bits_label.pack()
 num_bits_entry = ttk.Entry(root)
 num_bits_entry.pack()
 
-quantize_button = ttk.Button(root, text="Quantize Signal", command=quantize_button)
+quantize_button = ttk.Button(root, text="Quantize Signal", command=quantize_button_3)
 quantize_button.pack()
 # Labels to display encoded and quantized values
 encoded_label = ttk.Label(root, text="Encoded Values:")

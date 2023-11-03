@@ -4,20 +4,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def browse_file():
+def browse_file_1():
     file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
     if file_path:
         # Extract the file name from the path
         selected_file = file_path.split("/")[-1]
         # selected_file = file_path.split("\\")[-1]
         selected_file_label["text"] = selected_file
-        data = read_signal_data(file_path)
+        data = read_signal_data_1(file_path)
         if data is not None:
-            plot_signal(data)
+            plot_signal_1(data)
 
 
 
-def read_signal_data(file_path):
+def read_signal_data_1(file_path):
     try:
         with open(file_path, 'r') as file:
             lines = file.read().splitlines()
@@ -45,7 +45,7 @@ def read_signal_data(file_path):
 
 
 
-def plot_signal(data):
+def plot_signal_1(data):
     if len(data) == 0:
         print("No data to plot.")
         return
@@ -76,7 +76,7 @@ def plot_signal(data):
     plt.show()
 
 
-def generate_signal():
+def generate_signal_1():
     plt.figure(figsize=(12,5))
 
     signal_type = signal_type_combobox.get()
@@ -127,7 +127,7 @@ root.title("DSP Task 1")
 header_label = ttk.Label(root, text="DSP Task 1", font=("Arial", 20))
 header_label.pack(pady=20)
 
-upload_button = ttk.Button(root, text="Upload Text File", command=browse_file)
+upload_button = ttk.Button(root, text="Upload Text File", command=browse_file_1)
 upload_button.pack()
 
 # display the selected file name
@@ -164,7 +164,7 @@ phase_shift_entry.insert(0, "")
 phase_shift_entry.pack()
 
 # Create a button to generate the signal
-generate_button = ttk.Button(root, text="Generate Signal", command=generate_signal)
+generate_button = ttk.Button(root, text="Generate Signal", command=generate_signal_1)
 generate_button.pack(pady=20)
 
 root.mainloop()

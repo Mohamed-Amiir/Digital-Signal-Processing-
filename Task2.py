@@ -4,20 +4,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def browse_file(button_number):
+def browse_file_2(button_number):
     file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
     if file_path:
         # Extract the file name from the path
         selected_file = file_path.split("/")[-1]
         selected_files[button_number]["text"] = selected_file  # Display the selected file name
-        data = read_signal_data(file_path)
+        data = read_signal_data_2(file_path)
         if button_number == 1:
             data1.extend(data)
         else:
             data2.extend(data)
-
-
-def read_signal_data(file_path):
+def read_signal_data_2(file_path):
     try:
         with open(file_path, 'r') as file:
             lines = file.read().splitlines()
@@ -54,8 +52,6 @@ def read_signal_data(file_path):
     except Exception as e:
         print("Error reading the file:", e)
         return None
-
-
 def add_signals(data1, data2):
     if len(data1) != len(data2):
         print("Error: The signals have different lengths.")
@@ -63,8 +59,6 @@ def add_signals(data1, data2):
 
     summed_signal = [(sample1[0], sample1[1] + sample2[1]) for sample1, sample2 in zip(data1, data2)]
     return summed_signal
-
-
 def sub_signals(data1, data2):
     if len(data1) != len(data2):
         print("Error: The signals have different lengths.")
@@ -72,8 +66,6 @@ def sub_signals(data1, data2):
 
     subtracted_signal = [(sample1[0], sample1[1] - sample2[1]) for sample1, sample2 in zip(data1, data2)]
     return subtracted_signal
-
-
 def multiply_signal(data, constant):
     if constant == -1:
         # Invert the signal
@@ -82,15 +74,12 @@ def multiply_signal(data, constant):
         # Multiply the signal by the constant
         multiplied_signal = [(sample[0], sample[1] * constant) for sample in data]
     return multiplied_signal
-
 def square_signal(data):
     squared_signal = [(sample[0], sample[1] ** 2) for sample in data]
     return squared_signal
-
 def shift_signal(data, constant):
     shifted_signal = [(sample[0] + constant, sample[1]) for sample in data]
     return shifted_signal
-
 def normalize_signal(data, normalize_type):
     if normalize_type == 0:  # Normalize to [0, 1]
         max_amplitude = max(sample[1] for sample in data)
@@ -112,9 +101,6 @@ def normalize_signal(data, normalize_type):
         return data
 
     return normalized_signal
-
-
-
 def accumulate_signal(data):
     accumulated_signal = []
     accumulated_amplitude = 0
@@ -124,8 +110,7 @@ def accumulate_signal(data):
         accumulated_signal.append((sample[0], accumulated_amplitude))
 
     return accumulated_signal
-
-def plot_signal(data):
+def plot_signal_2(data):
     if len(data) == 0:
         print("No data to plot.")
         return
@@ -169,24 +154,24 @@ selected_files = {}  # Dictionary to store the selected file labels
 data1 = []  # List to store data for signal 1
 data2 = []  # List to store data for signal 2
 
-upload_button1 = ttk.Button(root, text="Upload Text File for Signal 1", command=lambda: browse_file(1))
+upload_button1 = ttk.Button(root, text="Upload Text File for Signal 1", command=lambda: browse_file_2(1))
 upload_button1.pack()
 
 selected_file_label1 = ttk.Label(root, text="Selected File 1: ")
 selected_file_label1.pack(pady=10)
 selected_files[1] = selected_file_label1  # Store the label in the dictionary
 
-upload_button2 = ttk.Button(root, text="Upload Text File for Signal 2", command=lambda: browse_file(2))
+upload_button2 = ttk.Button(root, text="Upload Text File for Signal 2", command=lambda: browse_file_2(2))
 upload_button2.pack()
 
 selected_file_label2 = ttk.Label(root, text="Selected File 2: ")
 selected_file_label2.pack(pady=10)
 selected_files[2] = selected_file_label2  # Store the label in the dictionary
 
-add_button = ttk.Button(root, text="Add Signals", command=lambda: plot_signal(add_signals(data1, data2)))
+add_button = ttk.Button(root, text="Add Signals", command=lambda: plot_signal_2(add_signals(data1, data2)))
 add_button.pack()
 
-sub_button = ttk.Button(root, text="Subtract Signals", command=lambda: plot_signal(sub_signals(data1, data2)))
+sub_button = ttk.Button(root, text="Subtract Signals", command=lambda: plot_signal_2(sub_signals(data1, data2)))
 sub_button.pack()
 
 const_label = ttk.Label(root, text="Enter A Constant value to use it in Shifting or Multiplying :")
@@ -196,13 +181,13 @@ constant_value = tk.DoubleVar(value=1.0)
 constant_entry = ttk.Entry(root, textvariable=constant_value, width=10)
 constant_entry.pack()
 
-mul_button = ttk.Button(root, text="Multiply Signal by Constant",command=lambda: plot_signal(multiply_signal(data1, constant_value.get())))
+mul_button = ttk.Button(root, text="Multiply Signal by Constant",command=lambda: plot_signal_2(multiply_signal(data1, constant_value.get())))
 mul_button.pack()
 
-shift_button = ttk.Button(root, text="Shift Signal", command=lambda: plot_signal(shift_signal(data1, constant_value.get())))
+shift_button = ttk.Button(root, text="Shift Signal", command=lambda: plot_signal_2(shift_signal(data1, constant_value.get())))
 shift_button.pack()
 
-squaring_button = ttk.Button(root, text="Squaring Signal",command=lambda: plot_signal(square_signal(data1)))
+squaring_button = ttk.Button(root, text="Squaring Signal",command=lambda: plot_signal_2(square_signal(data1)))
 squaring_button.pack()
 
 normalize_type_var = tk.IntVar(value=0)  # Default: Normalize to [0, 1]
@@ -216,11 +201,11 @@ normalize_radiobutton1 = ttk.Radiobutton(root, text="-1 to 1", variable=normaliz
 normalize_radiobutton0.pack()
 normalize_radiobutton1.pack()
 
-normalize_button = ttk.Button(root, text="Normalize Signal", command=lambda: plot_signal(normalize_signal(data1, normalize_type_var.get())))
+normalize_button = ttk.Button(root, text="Normalize Signal", command=lambda: plot_signal_2(normalize_signal(data1, normalize_type_var.get())))
 normalize_button.pack()
 
 
-accumulate_button = ttk.Button(root, text="Accumulate Signal", command=lambda: plot_signal(accumulate_signal(data1)))
+accumulate_button = ttk.Button(root, text="Accumulate Signal", command=lambda: plot_signal_2(accumulate_signal(data1)))
 accumulate_button.pack()
 
 
