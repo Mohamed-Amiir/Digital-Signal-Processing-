@@ -611,7 +611,7 @@ def Task5():
         print("Test case passed successfully")
 
 
-    class DCTApp:
+    class Task5:
         def __init__(self, root):
             self.root = root
             self.root.title("DCT Calculator")
@@ -662,14 +662,14 @@ def Task5():
             signal_samples = np.array(values)
 
             N = len(signal_samples)
-            dct_coefficients = np.zeros(N)
+            self.dct_coefficients = np.zeros(N)
 
             for k in range(N):
                 for n in range(N):
                     cos_term = np.cos((np.pi / (4 * N)) * (2 * n - 1) * (2 * k - 1))
-                    dct_coefficients[k] += signal_samples[n] * cos_term
-            dct_coefficients *= np.sqrt(2 / N)  # Normalize the entire vector
-
+                    self.dct_coefficients[k] += signal_samples[n] * cos_term
+            self.dct_coefficients *= np.sqrt(2 / N)  # Normalize the entire vector
+ 
 
             # print("DCT Coefficients:", dct_coefficients)
             
@@ -688,9 +688,9 @@ def Task5():
                     # Test the result using the provided function
             expected_file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab 5\\Task files\\DCT\\DCT_output.txt"
 
-            SignalSamplesAreEqual(expected_file_name, dct_coefficients)
+            SignalSamplesAreEqual(expected_file_name, self.dct_coefficients)
 
-            self.display_result(dct_coefficients)
+            self.display_result(self.dct_coefficients)
 
 
         def remove_dct(self):
@@ -744,26 +744,26 @@ def Task5():
                 self.result_label.config(text="Please upload a file first.")
                 return
 
-            input_data = self.file_content.split('\n')[3:]
-            input_data = [line.split() for line in input_data if line.strip()]
+            # input_data = self.file_content.split('\n')[3:]
+            # input_data = [line.split() for line in input_data if line.strip()]
 
-            values = zip(*[(int(index), float(value)) for index, value in input_data])
-            signal = np.array(values)
+            # values = zip(*[(int(index), float(value)) for index, value in input_data])
+            # signal = np.array(values)
 
-            dct_result = dct(signal, norm='ortho')
+            # dct_result = dct(signal, norm='ortho')
 
             m = int(input("Enter the number of coefficients to save: "))
-            selected_coefficients = dct_result[:m]
+            selected_coefficients = self.dct_coefficients[:m]
 
-            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-            if filename:
-                with open(filename, 'w') as file:
-                    for index, coefficient in enumerate(selected_coefficients):
-                        file.write(f"Coefficient {index}: {coefficient}\n")
+            # Specify the new file path and name
+            file_path = "D:\Studying\Level 4 sem 1\Digital Signal Processing\Labs\Lab 5\Task files\Saved_Coff.txt"
+
+            # Save the array to a new text file
+            np.savetxt(file_path, selected_coefficients, fmt='%d')
 
     if __name__ == "__main__":
         root = tk.Tk()
-        app = DCTApp(root)
+        app = Task5(root)
         root.mainloop()
 
 #*******************************************************************
