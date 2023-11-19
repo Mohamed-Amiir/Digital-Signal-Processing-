@@ -2,160 +2,112 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 import numpy as np
 import matplotlib.pyplot as plt
+import signalcompare as test
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter as tk
+from tkinter import Label, Entry, Button, Text, Scrollbar, END
 
-def Task5():
-  
-    class Task4:
-        def __init__(self, root):
-            self.root = root
-            self.root.title("DCT Calculator")
+# Function to perform Fourier transform and plot the results
+def plot_fourier_transform(samples, sampling_frequency):
 
-            self.create_widgets()
+    # Calculate the Fourier transform
+    # Calculate the angular frequency array
+    omega = np.fft.fftfreq(len(samples), d=1/sampling_frequency)
 
-        def create_widgets(self):
-            self.label = tk.Label(self.root, text="Upload a text file:")
-            self.label.pack()
+    # Calculate the Fourier transform
+    fft_coefficients = np.fft.fft(samples)
 
-            self.upload_button = tk.Button(self.root, text="Upload File", command=self.upload_file)
-            self.upload_button.pack()
+    # Calculate magnitude and phase spectra
+    magnitude_spectrum = np.abs(fft_coefficients)
+    phase_spectrum = np.angle(fft_coefficients)
 
-            self.compute_button = tk.Button(self.root, text="Compute DCT", command=self.compute_dct)
-            self.compute_button.pack()
+    # file_path = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab 4\\Test Cases\\DFT\\Output_Signal_DFT_A,Phase.txt"
+    # with open(file_path, 'r') as file:
+    #     file_content = file.read() 
+    # input_data = file_content.split('\n')[3:]
+    # input_data = [line.split() for line in input_data if line.strip()]
+    # magn, phas = zip(*[(float(index), float(value)) for index, value in input_data])
+    # phas_output = np.array(phas)
+    # magn_output = np.array(magn)
+    # if (test.SignalComaprePhaseShift(phas_output, phase_spectrum) == True):
+    #     print("ACCEPTED")
+    # else:
+    #     print("WRONG phase")
 
-            self.save_button = tk.Button(self.root, text="Save Coefficients", command=self.save_coefficients)
-            self.save_button.pack()
+    # if (test.SignalComapreAmplitude(magn_output, magnitude_spectrum)==True):
+    #     print("ACCEPTED")
+    # else:
+    #     print("WRONG magn")
 
-            self.remove_button = tk.Button(self.root, text="Remove DCT", command=self.remove_dct)
-            self.remove_button.pack()
+    # Create a new window for the plots
+    plot_window = tk.Toplevel(root)
+    plot_window.title('Fourier Transform Results')
 
-            self.result_label = tk.Label(self.root, text="")
-            self.result_label.pack()
+    # Plot the magnitude spectrum
+    plt.subplot(2, 1, 1)
+    plt.plot(omega, magnitude_spectrum)
+    plt.title('Frequency vs Amplitude')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Amplitude')
 
-            self.file_content = ""
+    # Plot the phase spectrum
+    plt.subplot(2, 1, 2)
+    plt.plot(omega, phase_spectrum)
+    plt.title('Frequency vs Phase')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Phase (radians)')
 
-        def upload_file(self):
-            file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
-            if file_path:
-                with open(file_path, 'r') as file:
-                    self.file_content = file.read()
-                self.result_label.config(text="File uploaded successfully.")
-
-        def compute_dct(self):
-            if not self.file_content:
-                self.result_label.config(text="Please upload a file first.")
-                return
-
-            input_data = self.file_content.split('\n')[3:]
-            input_data = [line.split() for line in input_data if line.strip()]
-            indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
-            # Define the signal samples
-            # Signal samples
-
-
-
-            signal_samples = np.array(values)
-
-            N = len(signal_samples)
-            dct_coefficients = np.zeros(N)
-
-            for k in range(N):
-                for n in range(N):
-                    cos_term = np.cos((np.pi / (4 * N)) * (2 * n - 1) * (2 * k - 1))
-                    dct_coefficients[k] += signal_samples[n] * cos_term
-            dct_coefficients *= np.sqrt(2 / N)  # Normalize the entire vector
+    plt.show()
 
 
-            # print("DCT Coefficients:", dct_coefficients)
-            
-            ###############################################################################
-            #         # Load expected coefficients from the file
-            #         expected_file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab 5\\Task files\\DCT\\DCT_output.txt"
-            #         with open(expected_file_name, 'r') as f:
-            #             expected_data = [line.split() for line in f.read().split('\n') if line.strip()]
+# Function to handle the button click event
+def analyze_signal(sampling_freq_entry):
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+        input_data = file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        signal_samples = np.array(values)
+        # Get user input for the sampling frequency
+        sampling_frequency = float(sampling_freq_entry.get())
 
-            #         expected_values = [float(value) for _, value in expected_data[3:]]  # Skip the first 3 lines
-
-            #         expected_result = np.array(expected_values)
-
-            #         print("Expected DCT Coefficients:", expected_result)
-            # #################################################################################
-                    # Test the result using the provided function
-            expected_file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab 5\\Task files\\DCT\\DCT_output.txt"
-
-            SignalSamplesAreEqual(expected_file_name, dct_coefficients)
-
-            self.display_result(dct_coefficients)
+        # Call the function to perform Fourier transform and plot the results
+        plot_fourier_transform(signal_samples, sampling_frequency)
+        
 
 
-        def remove_dct(self):
-            file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\Lab 5\\Task files\Remove DC component\\DC_component_input.txt"
-            with open(file_name, 'r') as f:
-                data = [line.split() for line in f.read().split('\n') if line.strip()]
+   
+# def upload_file():
+#             file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+#             if file_path:
+#                 with open(file_path, 'r') as file:
+#                     file_content = file.read()
+#                 result_label.config(text="File uploaded successfully.")
+#                 input_data = file_content.split('\n')[3:]
+#                 input_data = [line.split() for line in input_data if line.strip()]
+#                 indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+#                 signal_samples = np.array(values)
+#                 return signal_samples
+#             return 
 
-            values = [float(value) for _, value in data[3:]]  # Skip the first 3 lines
-            Data = np.array(values)
-            sum = 0
-            for element in Data:
-                sum += element
-            average = sum / len(Data)
-            result= []
-            for element in Data:
-                result.append(round((element-average),3))
-            # print("Original: ",Data)
-            # print("Result: ",result)# CORRECT BUT you need to take just first 3 decimal numbers to get ACCEPTED
-            plt.subplot(1, 2, 1)
-            plt.plot(Data, marker='o')
-            plt.xlabel("Sample Index")
-            plt.ylabel("Amplitude")
-            plt.title("Original")
+# Create the main tkinter window
+root = tk.Tk()
+root.title('Signal Analyzer')
 
-            plt.subplot(1, 2, 2)
-            plt.plot(result,marker='o')
-            plt.xlabel("Sample Index")
-            plt.ylabel("Amplitude")
-            plt.title("After Removing")
+# Create and place GUI components
+Label(root, text="Enter Sampling Frequency (Hz):").pack(pady=5)
+sampling_freq_entry = Entry(root)
+sampling_freq_entry.pack(pady=5)
 
-            plt.tight_layout()
-            plt.show()
-            # Test the result using the provided function
-            SignalSamplesAreEqual("D:\Studying\Level 4 sem 1\Digital Signal Processing\Labs\Lab 5\Task files\Remove DC component\DC_component_output.txt", result)
-            # plt.plot(result,marker = 'o')
-            # plt.title("After removing DCT component")
-            # plt.xlabel("x")
-            # plt.ylabel("y")
-            # plt.show()
+analyze_button = Button(root, text="Fourior Trans DFT", command=lambda: analyze_signal(sampling_freq_entry))
+analyze_button.pack(pady=10)
 
+result_label = Label(root, text="")
+result_label.pack()
 
-        def display_result(self, result):
-            plt.plot(result, marker='o')
-            plt.title("DCT Result")
-            plt.xlabel("Coefficient Index")
-            plt.ylabel("Coefficient Value")
-            plt.show()
-
-        def save_coefficients(self):
-            if not self.file_content:
-                self.result_label.config(text="Please upload a file first.")
-                return
-
-            input_data = self.file_content.split('\n')[3:]
-            input_data = [line.split() for line in input_data if line.strip()]
-
-            values = zip(*[(int(index), float(value)) for index, value in input_data])
-            signal = np.array(values)
-
-            dct_result = dct(signal, norm='ortho')
-
-            m = int(input("Enter the number of coefficients to save: "))
-            selected_coefficients = dct_result[:m]
-
-            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-            if filename:
-                with open(filename, 'w') as file:
-                    for index, coefficient in enumerate(selected_coefficients):
-                        file.write(f"Coefficient {index}: {coefficient}\n")
-
-    if __name__ == "__main__":
-        root = tk.Tk()
-        app = Task5(root)
-        root.mainloop()
+# Start the tkinter event loop
+root.mainloop()

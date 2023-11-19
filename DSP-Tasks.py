@@ -615,8 +615,9 @@ def Task5():
         def __init__(self, root):
             self.root = root
             self.root.title("DCT Calculator")
-
+            self.root.geometry("800x500")
             self.create_widgets()
+        num_dct = tk.DoubleVar(value=1.0)
 
         def create_widgets(self):
             self.label = tk.Label(self.root, text="Upload a text file:")
@@ -630,6 +631,10 @@ def Task5():
 
             self.save_button = tk.Button(self.root, text="Save Coefficients", command=self.save_coefficients)
             self.save_button.pack()
+
+            num_dct = tk.DoubleVar(value=1.0)
+            self.num_dct_entry = ttk.Entry(root, textvariable=num_dct, width=10)
+            self.num_dct_entry.pack()
 
             self.remove_button = tk.Button(self.root, text="Remove DCT", command=self.remove_dct)
             self.remove_button.pack()
@@ -654,11 +659,6 @@ def Task5():
             input_data = self.file_content.split('\n')[3:]
             input_data = [line.split() for line in input_data if line.strip()]
             indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
-            # Define the signal samples
-            # Signal samples
-
-
-
             signal_samples = np.array(values)
 
             N = len(signal_samples)
@@ -668,7 +668,7 @@ def Task5():
                 for n in range(N):
                     cos_term = np.cos((np.pi / (4 * N)) * (2 * n - 1) * (2 * k - 1))
                     self.dct_coefficients[k] += signal_samples[n] * cos_term
-            self.dct_coefficients *= np.sqrt(2 / N)  # Normalize the entire vector
+            self.dct_coefficients *= np.sqrt(2 / N)  
  
 
             # print("DCT Coefficients:", dct_coefficients)
@@ -698,7 +698,7 @@ def Task5():
             with open(file_name, 'r') as f:
                 data = [line.split() for line in f.read().split('\n') if line.strip()]
 
-            values = [float(value) for _, value in data[3:]]  # Skip the first 3 lines
+            values = [float(value) for _, value in data[3:]]  
             Data = np.array(values)
             sum = 0
             for element in Data:
@@ -723,7 +723,6 @@ def Task5():
 
             plt.tight_layout()
             plt.show()
-            # Test the result using the provided function
             SignalSamplesAreEqual("D:\Studying\Level 4 sem 1\Digital Signal Processing\Labs\Lab 5\Task files\Remove DC component\DC_component_output.txt", result)
             # plt.plot(result,marker = 'o')
             # plt.title("After removing DCT component")
@@ -752,7 +751,8 @@ def Task5():
 
             # dct_result = dct(signal, norm='ortho')
 
-            m = int(input("Enter the number of coefficients to save: "))
+            # m = int(input("Enter the number of coefficients to save: "))
+            m = int(self.num_dct_entry.get())
             selected_coefficients = self.dct_coefficients[:m]
 
             # Specify the new file path and name
@@ -760,6 +760,7 @@ def Task5():
 
             # Save the array to a new text file
             np.savetxt(file_path, selected_coefficients, fmt='%d')
+            print("DCT Coeffecients Saved Successfully")
 
     if __name__ == "__main__":
         root = tk.Tk()
