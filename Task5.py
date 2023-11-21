@@ -194,7 +194,7 @@ class DCTApp:
                 for index, coefficient in enumerate(selected_coefficients):
                     file.write(f"Coefficient {index}: {coefficient}\n")
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = DCTApp(root)
-    root.mainloop()
+
+root = tk.Tk()
+app = DCTApp(root)
+root.mainloop()

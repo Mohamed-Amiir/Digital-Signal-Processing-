@@ -1,87 +1,152 @@
+import tkinter as tk
+from tkinter import filedialog, ttk
 import numpy as np
 import matplotlib.pyplot as plt
-from tkinter import Tk, Frame, IntVar, DoubleVar, Button, Label, Entry, Listbox
-# Initialize the input signal
-signal = np.array([1, 3, 5, 7, 9, 11, 13, 15])
-def calculate_fourier_transform(signal):
-    n = len(signal)
-    frequency = np.fft.fftfreq(n)
-    amplitude_spectrum = np.abs(np.fft.fft(signal))
-    phase_spectrum = np.angle(np.fft.fft(signal))
 
-    return frequency, amplitude_spectrum, phase_spectrum
+#file_content = ""
+#dct_cof = []
 
-def update_plots(signal):
-    frequency, magnitude_spectrum, phase_spectrum = calculate_fourier_transform(signal)
+def SignalSamplesAreEqual(file_name,samples):
+    """
+    this function takes two inputs the file that has the expected results and your results.
+    file_name : this parameter corresponds to the file path that has the expected output
+    samples: this parameter corresponds to your results
+    return: this function returns Test case passed successfully if your results is similar to the expected output.
+    """
+    expected_indices=[]
+    expected_samples=[]
+    with open(file_name, 'r') as f:
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        while line:
+            # process line
+            L=line.strip()
+            if len(L.split(' '))==2:
+                L=line.split(' ')
+                V1=int(L[0])
+                V2=float(L[1])
+                expected_indices.append(V1)
+                expected_samples.append(V2)
+                line = f.readline()
+            else:
+                break
+                
+    if len(expected_samples)!=len(samples):
+        print("Test case failed, your signal have different length from the expected one")
+        return
+    for i in range(len(expected_samples)):
+        if abs(samples[i] - expected_samples[i]) < 0.01:
+            continue
+        else:
+            print("Test case failed, your signal have different values from the expected one") 
+            return
+    print("Test case passed successfully")
 
-    plt.subplot(2, 1, 1)
-    plt.plot(frequency, magnitude_spectrum)
-    plt.title('Frequency vs Amplitude')
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Amplitude')
+def upload_file():
+    file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+    if file_path:
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+        result_label.config(text="File uploaded successfully.")
+def computeDCT():
+    if not file_content:
+        result_label.config(text="Please upload a file first.")
+        return
 
-    plt.subplot(2, 1, 2)
-    plt.plot(frequency, phase_spectrum)
-    plt.title('Frequency vs Phase')
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Phase (radians)')
+    input_data = file_content.split('\n')[3:]
+    input_data = [line.split() for line in input_data if line.strip()]
+    indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+    signal_samples = np.array(values)
 
+    N = len(signal_samples)
+    dct_coefficients = np.zeros(N)
+
+    for k in range(N):
+        for n in range(N):
+            cos_term = np.cos((np.pi / (4 * N)) * (2 * n - 1) * (2 * k - 1))
+            dct_coefficients[k] += signal_samples[n] * cos_term
+    dct_coefficients *= np.sqrt(2 / N)  
+    expected_file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab 5\\Task files\\DCT\\DCT_output.txt"
+    dct_cof = dct_coefficients
+
+    SignalSamplesAreEqual(expected_file_name, dct_coefficients)
+    display_result(dct_coefficients)
+
+
+def remove():
+    file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\Lab 5\\Task files\Remove DC component\\DC_component_input.txt"
+    with open(file_name, 'r') as f:
+        data = [line.split() for line in f.read().split('\n') if line.strip()]
+
+    values = [float(value) for _, value in data[3:]]  
+    Data = np.array(values)
+    sum = 0
+    for element in Data:
+        sum += element
+    average = sum / len(Data)
+    result= []
+    for element in Data:
+        result.append(round((element-average),3))
+   
+    plt.subplot(1, 2, 1)
+    plt.plot(Data, marker='o')
+    plt.xlabel("Sample Index")
+    plt.ylabel("Amplitude")
+    plt.title("Original")
+
+    plt.subplot(1, 2, 2)
+    plt.plot(result,marker='o')
+    plt.xlabel("Sample Index")
+    plt.ylabel("Amplitude")
+    plt.title("After Removing")
+
+    plt.tight_layout()
+    plt.show()
+    SignalSamplesAreEqual("D:\Studying\Level 4 sem 1\Digital Signal Processing\Labs\Lab 5\Task files\Remove DC component\DC_component_output.txt", result)
+
+
+def display(result):
+    plt.plot(result, marker='o')
+    plt.title("DCT Result")
+    plt.xlabel("Coefficient Index")
+    plt.ylabel("Coefficient Value")
     plt.show()
 
-def update_amplitude(index, value):
-    signal[index] = signal[index] * value
-    update_plots(signal)
+def save():
+    num = int(num_dct_entry.get())
+    selected_coefficients = dct_cof[:num]
+    file_path = "D:\Studying\Level 4 sem 1\Digital Signal Processing\Labs\Lab 5\Task files\Saved_Coff.txt"
+    np.savetxt(file_path, selected_coefficients, fmt='%d')
+    print("DCT Coeffecients Saved Successfully")
 
-def update_phase(index, value):
-    signal[index] = signal[index] * np.exp(1j * value)
-    update_plots(signal)
 
-def main():
-    
+root = tk.Tk()
+root.title("DCT Calculator")
+root.geometry("800x500")
 
-    # Calculate the initial Fourier transform
-    frequency, magnitude_spectrum, phase_spectrum = calculate_fourier_transform(signal)
+label = tk.Label(root, text="Upload a text file:")
+label.pack()
 
-    # Create a GUI window
-    root = Tk()
-    root.title('Fourier Transform Manipulation')
+upload_button = tk.Button(root, text="Upload File", command=upload_file)
+upload_button.pack()
+compute_button = tk.Button(root, text="Compute DCT", command=computeDCT)
+compute_button.pack()
 
-    # Create a frame to display frequency components
-    frequency_frame = Frame(root)
-    frequency_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+num_dct = tk.DoubleVar(value=1)
+num_dct_entry = ttk.Entry(root, textvariable=num_dct, width=10)
+num_dct_entry.pack()
 
-    # Create a listbox to display frequency components
-    frequency_listbox = Listbox(frequency_frame, width=20, height=10)
-    frequency_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-    # Create labels and entry fields for amplitude and phase modification
-    amplitude_label = Label(frequency_frame, text='Amplitude:')
-    amplitude_label.pack(side=tk.TOP)
-    amplitude_entry = Entry(frequency_frame)
-    amplitude_entry.pack(side=tk.TOP)
+save_button = tk.Button(root, text="Save Coefficients", command=save)
+save_button.pack()
 
-    phase_label = Label(frequency_frame, text='Phase:')
-    phase_label.pack(side=TK.TOP)
-    phase_entry = Entry(frequency_frame)
-    phase_entry.pack(side=tk.TOP)
 
-    # Create a button to apply modifications
-    apply_button = Button(frequency_frame, text='Apply')
-    apply_button.pack(side=tk.TOP)
+remove_button = tk.Button(root, text="Remove DCT", command=remove)
+remove_button.pack()
 
-    # Populate the listbox with frequency components
-    for i in range(len(frequency)):
-        frequency_listbox.insert(i, f'{frequency[i]:.3f}')
+result_label = tk.Label(root, text="")
+result_label.pack()
 
-    # Update plots and listbox selection on listbox selection
-    frequency_listbox.bind('<<ListboxSelect>>', lambda event: update_plots(signal))
-
-    # Update amplitude and phase on entry value changes
-    amplitude_entry.bind('<KeyRelease>', lambda event: update_amplitude(frequency_listbox.curselection()[0], float(amplitude_entry.get())))
-    phase_entry.bind('<KeyRelease>', lambda event: update_phase(frequency_listbox.curselection()[0], float(phase_entry.get())))
-
-    # Run the GUI event loop
-    root.mainloop()
-
-if __name__ == '__main__':
-    main()
+root.mainloop()
