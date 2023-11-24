@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import comparesignals as cmp
 import Shift_Fold_Signal as SFS
+import ConvTest as CnvTest
 from scipy.fft import fft, ifft
 import tkinter as tk
 from tkinter import filedialog, ttk
@@ -219,39 +220,111 @@ class SignalsApp:
         plt.legend()
         plt.show()
 
-    def apply_convolution(self):
-        # Example signals
-        x = np.array([1, 2, 3, 4, 5])
-        h = np.array([0.5, 0.5])
+    def apply_convolution(self):# DONE
+        # Provided inputs
+        InputIndicesSignal1 = [-2, -1, 0, 1]
+        InputSamplesSignal1 = [1, 2, 1, 1]
+
+        InputIndicesSignal2 = [0, 1, 2, 3, 4, 5]
+        InputSamplesSignal2 = [1, -1, 0, 0, 1, 1]
 
         # Perform convolution
-        y = np.convolve(x, h, mode='full')
-
+        y = np.convolve(InputSamplesSignal1, InputSamplesSignal2, mode='full')
+        conv_indices = np.arange(len(y)) + min(InputIndicesSignal1[0], InputIndicesSignal2[0])
+        CnvTest.ConvTest(conv_indices,y)
         # Plot the original and convolved signals
-        plt.plot(x, label='Input Signal')
-        plt.plot(h, label='Impulse Response')
-        plt.plot(y, label='Convolved Signal')
+        plt.stem(InputIndicesSignal1, InputSamplesSignal1, label='Input Signal 1')
+        plt.stem(InputIndicesSignal2, InputSamplesSignal2, label='Input Signal 2', markerfmt='rx')
+        plt.stem(conv_indices, y, label='Convolved Signal', markerfmt='go')
         plt.legend()
         plt.show()
+    def SignalSamplesAreEqual(self,file_name,samples):
+        """
+        this function takes two inputs the file that has the expected results and your results.
+        file_name : this parameter corresponds to the file path that has the expected output
+        samples: this parameter corresponds to your results
+        return: this function returns Test case passed successfully if your results is similar to the expected output.
+        """
+        expected_indices=[]
+        expected_samples=[]
+        with open(file_name, 'r') as f:
+            line = f.readline()
+            line = f.readline()
+            line = f.readline()
+            line = f.readline()
+            while line:
+                # process line
+                L=line.strip()
+                if len(L.split(' '))==2:
+                    L=line.split(' ')
+                    V1=int(L[0])
+                    V2=float(L[1])
+                    expected_indices.append(V1)
+                    expected_samples.append(V2)
+                    line = f.readline()
+                else:
+                    break
+                    
+        if len(expected_samples)!=len(samples):
+            print("Test case failed, your signal have different length from the expected one")
+            return
+        for i in range(len(expected_samples)):
+            if abs(samples[i] - expected_samples[i]) < 0.01:
+                continue
+            else:
+                print("Test case failed, your signal have different values from the expected one") 
+                return
+        print("Test case passed successfully")
 
-    def remove_dc_component(self):
-        # Example signal
-        x = np.array([1, 2, 3, 4, 5, 4, 3, 2, 1])
+    def remove_dc_component(self):# DONE
+        file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\Lab 5\\Task files\Remove DC component\\DC_component_input.txt"
+        with open(file_name, 'r') as f:
+            data = [line.split() for line in f.read().split('\n') if line.strip()]
 
-        # Compute the Discrete Fourier Transform (DFT)
-        X = fft(x)
+        values = [float(value) for _, value in data[3:]]  
+        Data = np.array(values)
+        sum = 0
+        for element in Data:
+            sum += element
+        average = sum / len(Data)
+        result= []
+        for element in Data:
+            result.append(round((element-average),3))
+        # print("Original: ",Data)
+        # print("Result: ",result)# CORRECT BUT you need to take just first 3 decimal numbers to get ACCEPTED
+        plt.subplot(1, 2, 1)
+        plt.plot(Data, marker='o')
+        plt.xlabel("Sample Index")
+        plt.ylabel("Amplitude")
+        plt.title("Original")
 
-        # Set the DC component to zero
-        X[0] = 0
+        plt.subplot(1, 2, 2)
+        plt.plot(result,marker='o')
+        plt.xlabel("Sample Index")
+        plt.ylabel("Amplitude")
+        plt.title("After Removing")
 
-        # Compute the Inverse Fourier Transform
-        y = ifft(X)
-
-        # Plot the original and DC component removed signals
-        plt.plot(x, label='Original Signal')
-        plt.plot(np.real(y), label='Signal with DC Component Removed')
-        plt.legend()
+        plt.tight_layout()
         plt.show()
+        self.SignalSamplesAreEqual("D:\Studying\Level 4 sem 1\Digital Signal Processing\Labs\Lab 5\Task files\Remove DC component\DC_component_output.txt", result)
+        
+        # # Example signal
+        # x = np.array([1, 2, 3, 4, 5, 4, 3, 2, 1])
+
+        # # Compute the Discrete Fourier Transform (DFT)
+        # X = fft(x)
+
+        # # Set the DC component to zero
+        # X[0] = 0
+
+        # # Compute the Inverse Fourier Transform
+        # y = ifft(X)
+
+        # # Plot the original and DC component removed signals
+        # plt.plot(x, label='Original Signal')
+        # plt.plot(np.real(y), label='Signal with DC Component Removed')
+        # plt.legend()
+        # plt.show()
 
     def smooth_signal(self, signal, num_points):
         # Apply moving average for smoothing

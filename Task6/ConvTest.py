@@ -1,12 +1,7 @@
 def ConvTest(Your_indices,Your_samples): 
-    """
-    Test inputs
-    InputIndicesSignal1 =[-2, -1, 0, 1]
-    InputSamplesSignal1 = [1, 2, 1, 1 ]
+   
     
-    InputIndicesSignal2=[0, 1, 2, 3, 4, 5 ]
-    InputSamplesSignal2 = [ 1, -1, 0, 0, 1, 1 ]
-    """
+    
     
     expected_indices=[-2, -1, 0, 1, 2, 3, 4, 5, 6]
     expected_samples = [1, 1, -1, 0, 0, 3, 3, 2, 1 ]
