@@ -30,15 +30,15 @@ class SignalsApp:
         derivatives_button = tk.Button(self.root, text="Sharpening", command=self.DerivativeSignal)
         derivatives_button.pack()
 
-        # -3- Label and Entry for the number of steps to delay or advance
-        delay_label = tk.Label(self.root, text="Enter the number of steps to delay or advance:")
-        delay_label.pack()
+        # # -3- Label and Entry for the number of steps to delay or advance
+        # delay_label = tk.Label(self.root, text="Enter the number of steps to delay or advance:")
+        # delay_label.pack()
 
-        delay_entry = tk.Entry(self.root)
-        delay_entry.pack()
+        # delay_entry = tk.Entry(self.root)
+        # delay_entry.pack()
 
-        apply_delay_advance_button = tk.Button(self.root, text="Apply Delay or Advance", command=lambda: self.apply_delay_advance(delay_entry.get()))
-        apply_delay_advance_button.pack()
+        # apply_delay_advance_button = tk.Button(self.root, text="Apply Delay or Advance", command=lambda: self.apply_delay_advance(delay_entry.get()))
+        # apply_delay_advance_button.pack()
 
         # -4- Button to apply folding
         apply_folding_button = tk.Button(self.root, text="Apply Folding", command=self.apply_folding)
@@ -70,9 +70,18 @@ class SignalsApp:
             # Handle invalid input
             tk.messagebox.showerror("Error", "Invalid input. Please enter a valid integer.")
             return
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                self.file_content = file.read()
+        input_data = self.file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        ind = np.array(indices)
+        x = np.array(values)
 
-        # Example signal
-        x = np.array([1, 2, 3, 4, 5, 4, 3, 2, 1])
+        # # Example signal
+        # x = np.array([1, 2, 3, 4, 5, 4, 3, 2, 1])
 
         # Apply moving average for smoothing
         y = self.smooth_signal(x, num_points)
@@ -93,6 +102,10 @@ class SignalsApp:
         FirstDrev=np.diff(InputSignal)
         SecondDrev=np.diff(FirstDrev)
 
+        plt.plot(FirstDrev, label='First Drevitaive')
+        plt.plot(SecondDrev, label=f'Second Dervative')
+        plt.legend()
+        plt.show()
         """
         End
         """
@@ -222,11 +235,31 @@ class SignalsApp:
 
     def apply_convolution(self):# DONE
         # Provided inputs
-        InputIndicesSignal1 = [-2, -1, 0, 1]
-        InputSamplesSignal1 = [1, 2, 1, 1]
 
-        InputIndicesSignal2 = [0, 1, 2, 3, 4, 5]
-        InputSamplesSignal2 = [1, -1, 0, 0, 1, 1]
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                self.file_content = file.read()
+        input_data = self.file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        InputIndicesSignal1 = np.array(indices)
+        InputSamplesSignal1 = np.array(values)
+
+        # InputIndicesSignal1 = [-2, -1, 0, 1]
+        # InputSamplesSignal1 = [1, 2, 1, 1]
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                self.file_content = file.read()
+        input_data = self.file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        InputIndicesSignal2 = np.array(indices)
+        InputSamplesSignal2 = np.array(values)
+
+        # InputIndicesSignal2 = [0, 1, 2, 3, 4, 5]
+        # InputSamplesSignal2 = [1, -1, 0, 0, 1, 1]
 
         # Perform convolution
         y = np.convolve(InputSamplesSignal1, InputSamplesSignal2, mode='full')
