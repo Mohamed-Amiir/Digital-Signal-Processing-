@@ -12,7 +12,6 @@ class SignalsApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Signals Framework")
-
         self.create_widgets()
 
     def create_widgets(self):
