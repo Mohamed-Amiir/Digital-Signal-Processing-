@@ -21,45 +21,126 @@ class CrossCorrelationApp:
         # self.signal2_entry = ttk.Entry(root)
         # self.signal2_entry.grid(row=1, column=1, padx=10, pady=10)
 
-        self.sampling_period_label = ttk.Label(root, text="Sampling Period:")
-        self.sampling_period_label.grid(row=2, column=0, padx=10, pady=10)
-
-        self.sampling_period_entry = ttk.Entry(root)
-        self.sampling_period_entry.grid(row=2, column=1, padx=10, pady=10)
-
-        self.calculate_button = ttk.Button(root, text="Calculate", command=self.calculate_correlation_and_time_delay)
-        self.calculate_button.grid(row=3, column=0, columnspan=2, pady=10)
-
-        # Listbox widgets for displaying correlation and normalized correlation arrays
+        self.calculate_button = ttk.Button(root, text="Calculate Correlation", command=self.calculate_correlation_and_time_delay)
+        self.calculate_button.grid(row=1, column=0, columnspan=2, pady=10)
+         # Listbox widgets for displaying correlation and normalized correlation arrays
         self.correlation_listbox = tk.Listbox(root, selectmode=tk.SINGLE)
-        self.correlation_listbox.grid(row=5, column=0, padx=10, pady=10)
+        self.correlation_listbox.grid(row=3, column=0, padx=10, pady=10)
         self.correlation_listbox_label = ttk.Label(root, text="Correlation Array:")
-        self.correlation_listbox_label.grid(row=4, column=0, padx=10, pady=10)
+        self.correlation_listbox_label.grid(row=2, column=0, padx=10, pady=10)
 
         self.norm_correlation_listbox = tk.Listbox(root, selectmode=tk.SINGLE)
-        self.norm_correlation_listbox.grid(row=5, column=1, padx=10, pady=10)
+        self.norm_correlation_listbox.grid(row=3, column=1, padx=10, pady=10)
         self.norm_correlation_listbox_label = ttk.Label(root, text="Normalized Correlation Array:")
-        self.norm_correlation_listbox_label.grid(row=4, column=1, padx=10, pady=10)
+        self.norm_correlation_listbox_label.grid(row=2, column=1, padx=10, pady=10)
+        self.sampling_period_label = ttk.Label(root, text="Sampling Period:")
+        self.sampling_period_label.grid(row=4, column=0, padx=10, pady=10)
 
+
+
+        self.calculate_button = ttk.Button(root, text="Calculate Time Delay", command=self.calclute_time_delay)
+        self.calculate_button.grid(row=6, column=0, columnspan=2, pady=10)
+        self.sampling_period_entry = ttk.Entry(root)
+        self.sampling_period_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        
         # Entry widget for displaying time delay
         self.time_delay_label = ttk.Label(root, text="Time Delay:")
-        self.time_delay_label.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
+        self.time_delay_label.grid(row=7, column=0, columnspan=2, padx=10, pady=10)
         self.time_delay_entry = ttk.Entry(root, state='readonly')
-        self.time_delay_entry.grid(row=7, column=0, columnspan=2, padx=10, pady=10)
+        self.time_delay_entry.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
 
         self.matching_button = ttk.Button(root, text="Template Matching", command=self.template_matching)
-        self.matching_button.grid(row=8, column=0, columnspan=2, pady=10)
+        self.matching_button.grid(row=9, column=0, columnspan=2, pady=10)
         # # Matplotlib figure for displaying the signals and correlation result
         # self.figure, self.ax = plt.subplots(3, 1, figsize=(6, 6), tight_layout=True)
         # self.canvas = FigureCanvasTkAgg(self.figure, master=root)
         # self.canvas_widget = self.canvas.get_tk_widget()
         # self.canvas_widget.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+    def calclute_time_delay(self):
+        # test = [int(value) for value in values_str if value]
 
+        fs = float(self.sampling_period_entry.get())
+        ts = 1 / fs
+        signal1= []
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                td1 = file.read()
+        input_data = td1.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        # indices1, signal1 = zip(*[(int(index), float(value)) for index, value in input_data])
+        for i in range(len(input_data)):
+            signal1.append(float(input_data[i][1]))
+        # ind1 = np.array(indices1)
+        # signal1 = np.array(values)
+
+        signal2 =[]
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                td2 = file.read()
+        input_data = td2.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        # indices2, signal2 = zip(*[(int(index), float(value)) for index, value in input_data])
+        for i in range(len(input_data)):
+            signal2.append(float(input_data[i][1]))
+        # ind2 = np.array(indices2)
+        # signal2 = np.array(values)
+
+        #############calc correlation####################
+        # signal1 = [2, 1, 0, 0, 3]
+        # signal2 = [3, 2, 1, 1, 5]
+
+        corelation = []
+        normCorealtion = []
+        for n in range(len(signal1) + 1):
+            if n == 0:
+                continue
+            else:
+                signal2.append(signal2[0])
+                signal2.remove(signal2[0])
+            r = 0
+            p = 0
+            for i in range(len(signal1)):
+                r += (1 / len(signal1)) * (signal1[i] * signal2[i])
+            corelation.append(r)
+            sig1 = 0
+            sig2 = 0
+            for j in range(len(signal1)):
+                sig1 += signal1[j] * signal1[j]
+                sig2 += signal2[j] * signal2[j]
+            p = r / ((1 / len(signal1)) * np.power((sig1 * sig2), .5))
+            normCorealtion.append(p)
+            #################################################
+        x = []
+        x.append(corelation[len(corelation)-1])
+        for i in range(len(corelation)-1):
+            x.append(corelation[i])  
+        y = []
+        y.append(normCorealtion[len(normCorealtion)-1])
+        for i in range(len(normCorealtion)-1):
+            y.append(normCorealtion[i])      
+
+        corelation = x
+        normCorealtion = y    
+        # corelation.append(corelation[0])    
+        # corelation.remove(corelation[0])    
+        # normCorealtion.append(normCorealtion[0])
+        # normCorealtion.remove(normCorealtion[0])    
+        # Time delay analysis
+        max_corr_index = np.argmax(corelation)
+        time_delay = max_corr_index * ts
+        # Display time delay
+        self.time_delay_entry.config(state='normal')
+        self.time_delay_entry.delete(0, tk.END)
+        self.time_delay_entry.insert(0, f"{time_delay:.4f}")
+        self.time_delay_entry.config(state='readonly')
+        # print ("helloo")
     def calculate_correlation_and_time_delay(self):
         try:
             signal1 = [2, 1, 0, 0, 3]
             signal2 = [3, 2, 1, 1, 5]
-            sampling_period = 1/float(self.sampling_period_entry.get())
 
             corelation = []
             normCorealtion = []
@@ -81,10 +162,20 @@ class CrossCorrelationApp:
                     sig2 += signal2[j] * signal2[j]
                 p = r / ((1 / len(signal1)) * np.power((sig1 * sig2), .5))
                 normCorealtion.append(p)
+            x = []
+            x.append(corelation[len(corelation)-1])
+            for i in range(len(corelation)-1):
+                x.append(corelation[i])  
+            y = []
+            y.append(normCorealtion[len(normCorealtion)-1])
+            for i in range(len(normCorealtion)-1):
+                y.append(normCorealtion[i])      
 
+            corelation = x
+            normCorealtion = y
             # Time delay analysis
-            max_corr_index = np.argmax(normCorealtion)
-            time_delay = max_corr_index * sampling_period
+            # max_corr_index = np.argmax(corelation)
+            # time_delay = max_corr_index * sampling_period
 
             # Display signals and correlation result
 
@@ -96,7 +187,7 @@ class CrossCorrelationApp:
             plt.subplot(1, 3, 2)
             plt.plot(corelation,marker='o')
             plt.title("Cross Correlation")
-            
+
             plt.subplot(1,3,3)
             plt.plot(normCorealtion)
             plt.title("Normalized Cross Correlation")
@@ -129,10 +220,10 @@ class CrossCorrelationApp:
                 self.norm_correlation_listbox.insert(tk.END, f"{norm_corr_val:.4f}")
 
             # Display time delay
-            self.time_delay_entry.config(state='normal')
-            self.time_delay_entry.delete(0, tk.END)
-            self.time_delay_entry.insert(0, f"{time_delay:.4f}")
-            self.time_delay_entry.config(state='readonly')
+            # self.time_delay_entry.config(state='normal')
+            # self.time_delay_entry.delete(0, tk.END)
+            # self.time_delay_entry.insert(0, f"{time_delay:.4f}")
+            # self.time_delay_entry.config(state='readonly')
 
             # self.canvas.draw()
 
@@ -146,7 +237,7 @@ class CrossCorrelationApp:
         class13 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down3.txt"
         class14 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down4.txt"
         class15 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down5.txt"
-     
+
         class21 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up1.txt"
         class22 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up2.txt"
         class23 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up3.txt"
@@ -175,19 +266,19 @@ class CrossCorrelationApp:
         downAvg = []
         upAvg = []
         # for i in range(251):
-        #     x = 0 
+        #     x = 0
         #     y = 0
         #     x = down[0][i] + down[1][i]+ down[2][i] + down[3][i] + down[4][i]
-        #     a = x / 5    
+        #     a = x / 5
         #     downAvg.append(a)
         for i in range(251):
-            x = 0 
+            x = 0
             y = 0
             for j in range(5):
                 x += down[j][i]
                 y += up[j][i]
             a = x / 5
-            a2 = y / 5    
+            a2 = y / 5
             downAvg.append(a)
             upAvg.append(a2)
         # NOW WE HAVE THE AVG OF CLASS 1 AND THE AVG OF CLASS 2
@@ -250,7 +341,7 @@ class CrossCorrelationApp:
         if CLASS1 > CLASS2:
             print("Class 1")
         else:
-            print("Class 2")    
+            print("Class 2")
 
 
 
