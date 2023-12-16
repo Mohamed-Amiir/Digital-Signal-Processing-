@@ -12,10 +12,10 @@ class FIRFilterApp:
 
         # Initialize variables
         self.filter_type_var = tk.StringVar(value='Low pass')
-        self.fs_var = tk.StringVar(value='8000')
-        self.stop_band_attenuation_var = tk.StringVar(value='50')
-        self.fc_var = tk.StringVar(value='1500')
-        self.transition_band_var = tk.StringVar(value='500')
+        self.fs_var = tk.DoubleVar(value=8)
+        self.stop_band_attenuation_var = tk.DoubleVar(value=50)
+        self.fc_var = tk.DoubleVar(value=1.5)
+        self.transition_band_var = tk.DoubleVar(value=.500)
         self.lp_coefficients = None
 
         # Create GUI elements
@@ -27,7 +27,7 @@ class FIRFilterApp:
         self.filter_type_menu = tk.OptionMenu(self.master, self.filter_type_var, *filter_types)
         self.filter_type_menu.grid(row=0, column=1, padx=10, pady=5)
 
-        tk.Label(self.master, text="Sampling Frequency:").grid(row=1, column=0, padx=10, pady=5)
+        tk.Label(self.master, text="FS:").grid(row=1, column=0, padx=10, pady=5)
         self.fs_entry = tk.Entry(self.master, textvariable=self.fs_var, width=50)
         self.fs_entry.grid(row=1, column=1, padx=10, pady=5)
 
@@ -35,81 +35,68 @@ class FIRFilterApp:
         self.stop_band_attenuation_entry = tk.Entry(self.master, textvariable=self.stop_band_attenuation_var, width=50)
         self.stop_band_attenuation_entry.grid(row=2, column=1, padx=10, pady=5)
 
-        tk.Label(self.master, text="Cutoff Frequency:").grid(row=3, column=0, padx=10, pady=5)
+        tk.Label(self.master, text="FC:").grid(row=3, column=0, padx=10, pady=5)
         self.fc_entry = tk.Entry(self.master, textvariable=self.fc_var, width=50)
         self.fc_entry.grid(row=3, column=1, padx=10, pady=5)
 
-        tk.Label(self.master, text="Transition Band:").grid(row=4, column=0, padx=10, pady=5)
+        tk.Label(self.master, text="TW:").grid(row=4, column=0, padx=10, pady=5)
         self.transition_band_entry = tk.Entry(self.master, textvariable=self.transition_band_var, width=50)
         self.transition_band_entry.grid(row=4, column=1, padx=10, pady=5)
 
         # Button to run the FIR filter
         tk.Button(self.master, text="Run FIR Filter", command=self.run_fir_filter).grid(row=5, column=0, columnspan=2, pady=10)
+    def calculate_LowPass_HD(self,FCnorm, n):
+        if (n == 0):
+            result = 2 * FCnorm
+        else:    
+            result = 2 * FCnorm * ((np.sin(n * 2 * np.pi * FCnorm)) / (n * 2 * np.pi * FCnorm))
+        return result
+
+    def calculate_HammingW(self,n, N):
+        result = 0.54 + 0.46 * np.cos((2 * np.pi * n) / N)
+        return result
+
+    def FIR(self ,N, FCnorm):
+        H = []
+        indices = []
+        for n in range(int(-(N // 2)), int((N // 2) + 1)):
+            H.append(self.calculate_LowPass_HD(FCnorm, n) * self.calculate_HammingW(n, N))
+            indices.append(n)
+        return H, indices
 
     def run_fir_filter(self):
-        # Get user input
         filter_type = self.filter_type_var.get()
         fs = float(self.fs_var.get())
         stop_band_attenuation = float(self.stop_band_attenuation_var.get())
         fc = float(self.fc_var.get())
         transition_band = float(self.transition_band_var.get())
 
-        # Design the FIR filter
-        num_taps = self.compute_num_taps(transition_band, stop_band_attenuation, fs)
-        filter_coefficients = firwin(num_taps, fc, fs=fs)
+        deltaF = transition_band / fs
+        N = 3.3 / deltaF
+        if int(N) % 2 != 0:
+            N = int(N)
+        else:
+            N = int(np.ceil(3.3 / deltaF))
+        FCnormalized = (fc / fs) + (deltaF / 2)
+        result, resultIndices = self.FIR(N, FCnormalized)
+        self.plot_results(resultIndices, result)
+        self.save_coefficients(result)
 
-        # Apply the filter (dummy data for input_signal, replace with your data)
-        input_signal = np.random.randn(1000)  # Replace with your actual input data
-        filtered_signal = lfilter(filter_coefficients, 1.0, input_signal)
-
-        # Plot the results
-        self.plot_results(input_signal, filter_coefficients)
-
-        # Save coefficients to a text file
-        self.lp_coefficients = filter_coefficients
-        # self.save_coefficients(filter_coefficients)
-    # def run_fir_filter(self):
-    #     # Get user input
-    #     filter_type = self.filter_type_var.get()
-    #     fs = float(self.fs_var.get())
-    #     stop_band_attenuation = float(self.stop_band_attenuation_var.get())
-    #     fc = float(self.fc_var.get())
-    #     transition_band = float(self.transition_band_var.get())
-
-    #     # Design the FIR filter
-    #     num_taps = self.compute_num_taps(transition_band, stop_band_attenuation, fs)
-    #     filter_coefficients = firwin(num_taps, fc, fs=fs)
-
-    #     # Print LPF coefficients
-    #     for i, coef in enumerate(filter_coefficients):
-    #         print(f"{i - num_taps // 2} {coef}")
-
-    #     # Save coefficients to a text file
-    #     self.lp_coefficients = filter_coefficients
-    #     self.save_coefficients(filter_coefficients)
-
-    #     # Apply the filter (dummy data for input_signal, replace with your data)
-    #     input_signal = np.random.randn(1000)  # Replace with your actual input data
-    #     filtered_signal = lfilter(filter_coefficients, 1.0, input_signal)
-
-    #     # Plot the results
-    #     self.plot_results(input_signal, filtered_signal)
     def compute_num_taps(self, delta_f, stop_attenuation, fs):
         delta_omega = 2 * np.pi * delta_f / fs
         num_taps = int(6.6 * fs / delta_omega)
         if num_taps % 2 == 0:  # Ensure it is odd
             num_taps += 1
         return num_taps
-    def plot_results(self, input_signal, filtered_signal):
-        plt.figure(figsize=(10, 6))
-        plt.plot(input_signal, label='Input Signal', linewidth=2)
-        plt.plot(filtered_signal, label='Filtered Signal', linewidth=2)
-        plt.legend()
-        plt.xlabel('Sample')
-        plt.ylabel('Amplitude')
-        plt.title('FIR Filtered Signal')
+    def plot_results(self, indices, res):
+        plt.plot(indices, res)
+        plt.title('FIR Lowpass Filter Frequency Response')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Gain (dB)')
+        plt.grid(True)
         plt.show()
-    def save_coefficients(self, coefficients, filename='lpf_coefficients.txt'):
+
+    def save_coefficients(self, coefficients):
         file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
         if file_path:
             np.savetxt(file_path, coefficients, delimiter=',')

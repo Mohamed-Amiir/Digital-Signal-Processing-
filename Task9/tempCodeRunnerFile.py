@@ -1,1 +1,6 @@
-firwin
+plt.plot(resultIndices, result)
+plt.title('FIR Lowpass Filter Frequency Response')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Gain (dB)')
+plt.grid(True)
+plt.show()
