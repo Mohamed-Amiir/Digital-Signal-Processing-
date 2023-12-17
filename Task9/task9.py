@@ -158,6 +158,13 @@ class FIRFilterApp:
             x = 0.5 + 0.5 * np.cos((2 * np.pi * n) / N)
             result.append(x)    
         return result 
+    def calculte_Blackman(self,N):
+        result = []
+        for n in range(int(-(N // 2)), int((N // 2) + 1)):  
+            x = .42+.5 * np.cos((2 * np.pi * n)/(N-1)) + .08 * np.cos((4 * np.pi * n)/(N - 1))
+            result.append(x)    
+        return result 
+ 
     def FIR(self,filter,window,N, FCnorm):
         F = []
         W = []
@@ -181,7 +188,7 @@ class FIRFilterApp:
         elif(window == "hamming"):
             W = self.calculate_Hamming(N)   
         elif(window == "blackman"):
-            W = self.calculte_Haning(N)   
+            W = self.calculte_Blackman(N)   
 
         H = []
         indices = []
@@ -200,34 +207,48 @@ class FIRFilterApp:
         N = 0
         FCnormalized = 0 
         window = ""    
-        if(stop_band_attenuation < 13):
-            window = "rectangular"
+        deltaF = 0
+        if (filter_type == "Low pass"):
             deltaF = transition_band / fs
+            FCnormalized = (fc / fs) + (deltaF / 2)
+        elif (filter_type == "High pass"):
+            deltaF = transition_band / fs
+            FCnormalized = (fc / fs) - (deltaF / 2)
+
+
+
+
+        if(stop_band_attenuation < 21):
+            window = "rectangular"
             N = 0.9 / deltaF
             if int(N) % 2 != 0:
                 N = int(N)
             else:
-                N = int(np.ceil(3.3 / deltaF))
-            FCnormalized = (fc / fs) + (deltaF / 2)
-        elif(stop_band_attenuation < 31 & stop_band_attenuation > 13):
+                N = int(np.ceil(0.9 / deltaF))
+        elif(stop_band_attenuation < 44):
             window = "hanning"
-            deltaF = transition_band / fs
             N = 3.1 / deltaF
             if int(N) % 2 != 0:
                 N = int(N)
             else:
-                N = int(np.ceil(3.3 / deltaF))
-            FCnormalized = (fc / fs) + (deltaF / 2)
-        elif(stop_band_attenuation > 41 ):
+                N = int(np.ceil(3.1 / deltaF))
+        elif( stop_band_attenuation < 53 ):
             window = "hamming"  
-            deltaF = transition_band / fs
             N = 3.3 / deltaF
             if int(N) % 2 != 0:
                 N = int(N)
             else:
                 N = int(np.ceil(3.3 / deltaF))
-            FCnormalized = (fc / fs) + (deltaF / 2)
-    
+        elif(stop_band_attenuation < 74):
+            window = "blackman"  
+            N = 5.5 / deltaF
+            if int(N) % 2 != 0:
+                N = int(N)
+            elif N % 2 == 0:
+                N = N + 1 
+                N = int(N)    
+            else:
+                N = int(np.ceil(5.5 / deltaF))    
         result, resultIndices,outputFile = self.FIR(filter_type,window,N, FCnormalized)
         self.coefficients = result
         self.coefficientsIndecies = resultIndices
