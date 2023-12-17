@@ -41,8 +41,49 @@ class FIRFilterApp:
         load_button = tk.Button(self.master, text="Load from File", command=self.load_values_from_file)
         load_button.grid(row=5, column=0, columnspan=2, pady=10)
 
+        ecg_button = tk.Button(self.master, text="ECG", command=self.ecg)
+        ecg_button.grid(row=7, column=0, columnspan=2, pady=10)
+        self.coefficients = []
+        self.coefficientsIndecies = []
         # Button to run the FIR filter
         tk.Button(self.master, text="Run FIR Filter", command=self.run_fir_filter).grid(row=6, column=0, columnspan=2, pady=10)
+
+    def ecg(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+        input_data = file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, ecg400 = zip(*[(int(index), float(value)) for index, value in input_data])
+        # ind = np.array(indices)
+        # ecg400 = np.array(values)
+
+        ecgResult = np.convolve(ecg400, self.coefficients)
+        INDCIS = []
+        start_index = self.coefficientsIndecies[0]
+        end_index = 400 + abs(start_index)
+        for i in range(start_index,end_index):
+            INDCIS.append(i)
+
+        # indic = np.arange(start_index, end_index + 1)
+
+        # Extract the portion of the convolution result within the specified range
+        # ecgResult_subset = ecgResult[start_index:end_index + 1]
+
+        # indices = np.arange(len(ecgResult))
+
+        plt.plot(ecgResult)
+        plt.title('ECG')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Gain (dB)')
+        plt.grid(True)
+        plt.show()
+        messagebox.showinfo("NOW","Save the Result")
+        self.save_coefficients(INDCIS,ecgResult)
+        messagebox.showinfo("NOW","Check your solution, upload the optimal solution file")
+        filePath = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        test.Compare_Signals(filePath,INDCIS,ecgResult)
     def load_values_from_file(self):
         file_path = filedialog.askopenfilename(title="Select Input File", filetypes=[("Text files", "*.txt")])
         if file_path:
@@ -188,10 +229,13 @@ class FIRFilterApp:
             FCnormalized = (fc / fs) + (deltaF / 2)
     
         result, resultIndices,outputFile = self.FIR(filter_type,window,N, FCnormalized)
-
+        self.coefficients = result
+        self.coefficientsIndecies = resultIndices
+        # messagebox.showinfo("NOW","Check your solution, upload the optimal solution file")
         test.Compare_Signals(outputFile,resultIndices,result)
 
         self.plot_results(resultIndices, result)
+        messagebox.showinfo("NOW","Save your solution")
         self.save_coefficients(resultIndices,result)  
     def plot_results(self, indices, res):
         plt.plot(indices, res)
@@ -200,6 +244,7 @@ class FIRFilterApp:
         plt.ylabel('Gain (dB)')
         plt.grid(True)
         plt.show()
+    
     def save_coefficients(self, indecis, coefficients):
         if len(indecis) != len(coefficients):
             messagebox.showerror("Error", "Lengths of 'indecis' and 'coefficients' must be the same.")
