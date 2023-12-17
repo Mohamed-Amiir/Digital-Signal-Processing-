@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import CompareSignal as test
 
-class FIRFilterApp:
+class PracticalTask1:
 
     def __init__(self, master):
         self.master = master
@@ -16,6 +16,8 @@ class FIRFilterApp:
         self.fc_var = tk.DoubleVar(value=0)
         self.f1_var = tk.DoubleVar(value=0)
         self.f2_var = tk.DoubleVar(value=0)
+        self.M_var = tk.IntVar(value=0)
+        self.L_var = tk.IntVar(value=0)
         self.transition_band_var = tk.DoubleVar(value=0)
         self.lp_coefficients = None
         # Create GUI elements
@@ -60,6 +62,84 @@ class FIRFilterApp:
         tk.Button(self.master, text="Run FIR Filter", command=self.run_fir_filter).grid(row=8, column=0, columnspan=2, pady=10)
         ecg_button = tk.Button(self.master, text="ECG", command=self.ecg)
         ecg_button.grid(row=9, column=0, columnspan=2, pady=10)
+
+        tk.Label(self.master, text="Resampling").grid(row=10, column=0, columnspan=2, pady=10)
+
+        tk.Label(self.master, text="M").grid(row=11, column=0, padx=10, pady=5)
+        self.M_entry = tk.Entry(self.master, textvariable=self.M_var, width=25)
+        self.M_entry.grid(row=11, column=1, padx=10, pady=5)
+
+        tk.Label(self.master, text="L").grid(row=12, column=0, padx=10, pady=5)
+        self.L_entry = tk.Entry(self.master, textvariable=self.L_var, width=25)
+        self.L_entry.grid(row=12, column=1, padx=10, pady=5)
+
+        # tk.Label(self.master, text="L").grid(row=5, column=0, padx=10, pady=5)
+        # self.fc_entry = tk.Entry(self.master, textvariable=self.f2_var, width=50)
+        # self.fc_entry.grid(row=5, column=1, padx=10, pady=5)
+
+        tk.Button(self.master, text="Resample", command=self.resampling).grid(row=13, column=0, columnspan=2, pady=10)
+    
+    
+    def upsample(self,signal, factor):
+        result = []
+        for element in signal:
+            result.extend([element] + [0] * (factor-1))
+        for i in range(factor-1):
+            result.pop()    
+        return result
+    
+    def downsample(self,signal, factor):
+        return signal[::factor]
+    
+    def upload_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                self.file_content = file.read()
+        input_data = self.file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        x, y = zip(*[(int(index), float(value)) for index, value in input_data])
+        indices = np.array(x)
+        values = np.array(y)
+        return indices,values
+    
+    def resampling(self):
+        inputIndecis,input_signal = self.upload_file()
+        filteredDataIndcies,filtered_signal = self.run_fir_filter()
+        M = (self.M_var.get())
+        L = (self.L_var.get())
+        ###########################################################
+        if M == 0 and L == 0:
+            return "Error: Both M and L cannot be zero."
+        if M == 0:
+            x = self.upsample(input_signal, L)
+            resampled_signal = self.convolve(x,filtered_signal)
+        elif L == 0:
+            x = self.convolve(filtered_signal,input_signal)
+            resampled_signal = self.downsample(x, M)
+        else:
+            # Fractional rate change: upsample, filter, downsample
+            upsampled_signal = self.upsample(input_signal, L)
+            x = self.convolve(filtered_signal,upsampled_signal)
+            resampled_signal = self.downsample(x, M)
+        indecis =  []
+        for i in range(int(-(len(filtered_signal)/2)),int( len(resampled_signal) - (len(filtered_signal)/2))+1):
+            indecis.append(i)
+        
+        result = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        test.Compare_Signals(result,indecis,resampled_signal)
+        # print(resampled_signal)
+        # print(len(resampled_signal))
+        # Display the result
+        plt.plot(input_signal, label="Original Signal")
+        plt.plot(resampled_signal, label="Resampled Signal")
+        plt.title("Original vs. Resampled Signal")
+        plt.xlabel("Sample Index")
+        plt.ylabel("Amplitude")
+        plt.legend()
+        plt.show()
+        # return resampled_signal
+
 
     def ecg(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
@@ -292,15 +372,15 @@ class FIRFilterApp:
                 N = int(N)     
             else:
                 N = int(np.ceil(5.5 / deltaF))    
-        result, resultIndices,outputFile = self.FIR(filter_type,window,N, FCnormalized,F1Norm,F2Norm)
+        result, resultIndices, outputFile = self.FIR(filter_type,window,N, FCnormalized,F1Norm,F2Norm)
         self.coefficients = result
         self.coefficientsIndecies = resultIndices
-        # messagebox.showinfo("NOW","Check your solution, upload the optimal solution file")
-        test.Compare_Signals(outputFile,resultIndices,result)
-        self.plot_results(resultIndices, result)
-        messagebox.showinfo("NOW","Save your solution")
-        self.save_coefficients(resultIndices,result)
-    
+        # test.Compare_Signals(outputFile,resultIndices,result)
+        # self.plot_results(resultIndices, result)
+        # messagebox.showinfo("NOW","Save your solution")
+        # self.save_coefficients(resultIndices,result)
+        return resultIndices,result
+
     def convolve(self,a,b):
         lenA,lenB = len(a) ,len(b)
         result = [0]*(lenA+lenB-1)
@@ -308,7 +388,7 @@ class FIRFilterApp:
             for j in range(lenB):
                 result[i+j] += a[i]*b[j]
         return result
-    
+
     def plot_results(self, indices, res):
         plt.plot(indices, res)
         plt.title('FIR Lowpass Filter Frequency Response')
@@ -330,7 +410,7 @@ class FIRFilterApp:
 
 def main():
     root = tk.Tk()
-    app = FIRFilterApp(root)
+    app = PracticalTask1(root)
     root.mainloop()
 if __name__ == "__main__":
     main()
