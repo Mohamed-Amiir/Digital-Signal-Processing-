@@ -197,6 +197,9 @@ class FIRFilterApp:
         elif(filter == "Band pass"):
             F = self.calculate_BandPass_HD(F1norm,F2Norm,N) 
             output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 5\\BPFCoefficients.txt"
+        elif(filter == "Band stop"):
+            F = self.calculate_BandStop_HD(F1norm,F2Norm,N) 
+            output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 7\\BSFCoefficients.txt"
 
         # elif(filter == "bandpass"):
         #     F = self.calculate_BandPass_HD(FCnorm,N)   
@@ -242,6 +245,10 @@ class FIRFilterApp:
             deltaF = transition_band / fs
             F1Norm = (f1 / fs) - (deltaF / 2)
             F2Norm = (f2 / fs) + (deltaF / 2)
+        elif (filter_type == "Band stop"):
+            deltaF = transition_band / fs
+            F1Norm = (f1 / fs) + (deltaF / 2)
+            F2Norm = (f2 / fs) - (deltaF / 2)
 
 
 
