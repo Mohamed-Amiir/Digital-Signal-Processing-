@@ -12,6 +12,8 @@ class FIRFilterApp:
         self.fs_var = tk.DoubleVar(value=0)
         self.stop_band_attenuation_var = tk.IntVar(value=0)
         self.fc_var = tk.DoubleVar(value=0)
+        self.f1_var = tk.DoubleVar(value=0)
+        self.f2_var = tk.DoubleVar(value=0)
         self.transition_band_var = tk.DoubleVar(value=0)
         self.lp_coefficients = None
         # Create GUI elements
@@ -34,20 +36,29 @@ class FIRFilterApp:
         self.fc_entry = tk.Entry(self.master, textvariable=self.fc_var, width=50)
         self.fc_entry.grid(row=3, column=1, padx=10, pady=5)
 
-        tk.Label(self.master, text="TW:").grid(row=4, column=0, padx=10, pady=5)
+        tk.Label(self.master, text="F1:").grid(row=4, column=0, padx=10, pady=5)
+        self.fc_entry = tk.Entry(self.master, textvariable=self.f1_var, width=50)
+        self.fc_entry.grid(row=4, column=1, padx=10, pady=5)
+
+        tk.Label(self.master, text="F2:").grid(row=5, column=0, padx=10, pady=5)
+        self.fc_entry = tk.Entry(self.master, textvariable=self.f2_var, width=50)
+        self.fc_entry.grid(row=5, column=1, padx=10, pady=5)
+
+        tk.Label(self.master, text="TW:").grid(row=6, column=0, padx=10, pady=5)
         self.transition_band_entry = tk.Entry(self.master, textvariable=self.transition_band_var, width=50)
-        self.transition_band_entry.grid(row=4, column=1, padx=10, pady=5)
+        self.transition_band_entry.grid(row=6, column=1, padx=10, pady=5)
         # Button to load values from file
         load_button = tk.Button(self.master, text="Load from File", command=self.load_values_from_file)
-        load_button.grid(row=5, column=0, columnspan=2, pady=10)
+        load_button.grid(row=7, column=0, columnspan=2, pady=10)
 
-        ecg_button = tk.Button(self.master, text="ECG", command=self.ecg)
-        ecg_button.grid(row=7, column=0, columnspan=2, pady=10)
+       
         self.coefficients = []
         self.coefficientsIndecies = []
         # Button to run the FIR filter
-        tk.Button(self.master, text="Run FIR Filter", command=self.run_fir_filter).grid(row=6, column=0, columnspan=2, pady=10)
-
+        
+        tk.Button(self.master, text="Run FIR Filter", command=self.run_fir_filter).grid(row=8, column=0, columnspan=2, pady=10)
+        ecg_button = tk.Button(self.master, text="ECG", command=self.ecg)
+        ecg_button.grid(row=9, column=0, columnspan=2, pady=10)
     def ecg(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
         if file_path:
@@ -96,12 +107,19 @@ class FIRFilterApp:
                         self.filter_type_var.set(value)
                     elif key == 'fs':
                         self.fs_var.set(float(value))
+                    elif key == 'f1':
+                        self.f1_var.set(float(value))
+                    elif key == 'f2':
+                        self.f2_var.set(float(value))
                     elif key == 'stopbandattenuation':
                         self.stop_band_attenuation_var.set(float(value))
                     elif key == 'fc':
                         self.fc_var.set(float(value))
                     elif key == 'transitionband':
-                        self.transition_band_var.set(float(value))       
+                        self.transition_band_var.set(float(value))     
+
+
+
     def calculate_LowPass_HD(self,FCnorm, N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):
@@ -130,8 +148,10 @@ class FIRFilterApp:
             x = 0
             if (n == 0):
                 x = 2 * (F2-F1)
-            else:    
-                x = (2 * F2 * ((np.sin(n * 2 * np.pi * F2)) / (n * 2 * np.pi * F2)))+(-2 * F1 * ((np.sin(n * 2 * np.pi * F1)) / (n * 2 * np.pi * F1)))
+            else: 
+                a = 2 * F2 * ((np.sin(n * 2 * np.pi * F2)) / (n * 2 * np.pi * F2))
+                b = -2 * F1 * ((np.sin(n * 2 * np.pi * F1)) / (n * 2 * np.pi * F1))
+                x = float(a + b)
             result.append(x)    
         
         return result 
@@ -164,8 +184,7 @@ class FIRFilterApp:
             x = .42+.5 * np.cos((2 * np.pi * n)/(N-1)) + .08 * np.cos((4 * np.pi * n)/(N - 1))
             result.append(x)    
         return result 
- 
-    def FIR(self,filter,window,N, FCnorm):
+    def FIR(self,filter,window,N, FCnorm,F1norm,F2Norm):
         F = []
         W = []
         output_file = ""
@@ -175,6 +194,9 @@ class FIRFilterApp:
         elif(filter == "High pass"):
             F = self.calculate_HighPass_HD(FCnorm,N) 
             output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 3\\HPFCoefficients.txt"
+        elif(filter == "Band pass"):
+            F = self.calculate_BandPass_HD(F1norm,F2Norm,N) 
+            output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 5\\BPFCoefficients.txt"
 
         # elif(filter == "bandpass"):
         #     F = self.calculate_BandPass_HD(FCnorm,N)   
@@ -200,7 +222,9 @@ class FIRFilterApp:
         return H, indices,output_file
     def run_fir_filter(self):
         filter_type = self.filter_type_var.get()
-        fs = float(self.fs_var.get())/1000
+        fs = (self.fs_var.get())/1000
+        f1 = (self.f1_var.get())/1000
+        f2 = (self.f2_var.get())/1000
         stop_band_attenuation = int(self.stop_band_attenuation_var.get())
         fc = float(self.fc_var.get())/1000
         transition_band = float(self.transition_band_var.get())/1000
@@ -214,6 +238,10 @@ class FIRFilterApp:
         elif (filter_type == "High pass"):
             deltaF = transition_band / fs
             FCnormalized = (fc / fs) - (deltaF / 2)
+        elif (filter_type == "Band pass"):
+            deltaF = transition_band / fs
+            F1Norm = (f1 / fs) - (deltaF / 2)
+            F2Norm = (f2 / fs) + (deltaF / 2)
 
 
 
@@ -246,10 +274,10 @@ class FIRFilterApp:
                 N = int(N)
             elif N % 2 == 0:
                 N = N + 1 
-                N = int(N)    
+                N = int(N)     
             else:
                 N = int(np.ceil(5.5 / deltaF))    
-        result, resultIndices,outputFile = self.FIR(filter_type,window,N, FCnormalized)
+        result, resultIndices,outputFile = self.FIR(filter_type,window,N, FCnormalized,F1Norm,F2Norm)
         self.coefficients = result
         self.coefficientsIndecies = resultIndices
         # messagebox.showinfo("NOW","Check your solution, upload the optimal solution file")

@@ -1,7 +1,9 @@
-original_number = 0.0493559615
+number = -1.135854E-19
 
-# Round to 8 decimal places
-rounded_number = round(original_number, 7)
+# Using format function
+formatted_number = "{:e}".format(number)
+print("Formatted Number (using format):", formatted_number)
 
-print("Original Number:", original_number)
-print("Rounded Number:", rounded_number)
+# Using f-string (available in Python 3.6 and above)
+formatted_number_fstring = f"{number:e}"
+print("Formatted Number (using f-string):", formatted_number_fstring)
