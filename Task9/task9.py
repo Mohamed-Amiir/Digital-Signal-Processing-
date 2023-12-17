@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import CompareSignal as test
+
 class FIRFilterApp:
+
     def __init__(self, master):
         self.master = master
         self.master.title("FIR Filter Application")
@@ -18,6 +20,7 @@ class FIRFilterApp:
         self.lp_coefficients = None
         # Create GUI elements
         self.create_widgets()
+
     def create_widgets(self):
         tk.Label(self.master, text="Filter Type:").grid(row=0, column=0, padx=10, pady=5)
         filter_types = ['Low pass', 'High pass', 'Band pass', 'Band stop']
@@ -51,14 +54,13 @@ class FIRFilterApp:
         load_button = tk.Button(self.master, text="Load from File", command=self.load_values_from_file)
         load_button.grid(row=7, column=0, columnspan=2, pady=10)
 
-       
         self.coefficients = []
         self.coefficientsIndecies = []
         # Button to run the FIR filter
-        
         tk.Button(self.master, text="Run FIR Filter", command=self.run_fir_filter).grid(row=8, column=0, columnspan=2, pady=10)
         ecg_button = tk.Button(self.master, text="ECG", command=self.ecg)
         ecg_button.grid(row=9, column=0, columnspan=2, pady=10)
+
     def ecg(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
         if file_path:
@@ -70,7 +72,7 @@ class FIRFilterApp:
         # ind = np.array(indices)
         # ecg400 = np.array(values)
 
-        ecgResult = np.convolve(ecg400, self.coefficients)
+        ecgResult = self.convolve(ecg400, self.coefficients)
         INDCIS = []
         start_index = self.coefficientsIndecies[0]
         end_index = 400 + abs(start_index)
@@ -95,6 +97,7 @@ class FIRFilterApp:
         messagebox.showinfo("NOW","Check your solution, upload the optimal solution file")
         filePath = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
         test.Compare_Signals(filePath,INDCIS,ecgResult)
+
     def load_values_from_file(self):
         file_path = filedialog.askopenfilename(title="Select Input File", filetypes=[("Text files", "*.txt")])
         if file_path:
@@ -118,8 +121,6 @@ class FIRFilterApp:
                     elif key == 'transitionband':
                         self.transition_band_var.set(float(value))     
 
-
-
     def calculate_LowPass_HD(self,FCnorm, N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):
@@ -131,6 +132,7 @@ class FIRFilterApp:
             result.append(x)    
         
         return result
+
     def calculate_HighPass_HD(self,FCnorm,  N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):
@@ -141,7 +143,8 @@ class FIRFilterApp:
                 x = -2 * FCnorm * ((np.sin(n * 2 * np.pi * FCnorm)) / (n * 2 * np.pi * FCnorm))
             result.append(x)    
         
-        return result  
+        return result
+
     def calculate_BandPass_HD(self,F1,F2, N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):
@@ -154,7 +157,8 @@ class FIRFilterApp:
                 x = float(a + b)
             result.append(x)    
         
-        return result 
+        return result
+
     def calculate_BandStop_HD(self,F1,F2, N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):
@@ -165,25 +169,29 @@ class FIRFilterApp:
                 x = (2 * F1 * ((np.sin(n * 2 * np.pi * F1)) / (n * 2 * np.pi * F1)))+(-2 * F2 * ((np.sin(n * 2 * np.pi * F2)) / (n * 2 * np.pi * F2)))
             result.append(x)    
         
-        return result    
+        return result   
+
     def calculate_Hamming(self, N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):  
             x = 0.54 + 0.46 * np.cos((2 * np.pi * n) / N)
             result.append(x)    
-        return result       
+        return result   
+
     def calculte_Haning(self,N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):  
             x = 0.5 + 0.5 * np.cos((2 * np.pi * n) / N)
             result.append(x)    
         return result 
+
     def calculte_Blackman(self,N):
         result = []
         for n in range(int(-(N // 2)), int((N // 2) + 1)):  
             x = .42+.5 * np.cos((2 * np.pi * n)/(N-1)) + .08 * np.cos((4 * np.pi * n)/(N - 1))
             result.append(x)    
         return result 
+
     def FIR(self,filter,window,N, FCnorm,F1norm,F2Norm):
         F = []
         W = []
@@ -223,6 +231,7 @@ class FIRFilterApp:
         for n in range(int(-(N // 2)), int((N // 2) + 1)):
             indices.append(n)
         return H, indices,output_file
+
     def run_fir_filter(self):
         filter_type = self.filter_type_var.get()
         fs = (self.fs_var.get())/1000
@@ -233,6 +242,8 @@ class FIRFilterApp:
         transition_band = float(self.transition_band_var.get())/1000
         N = 0
         FCnormalized = 0 
+        F1Norm = 0
+        F2Norm = 0
         window = ""    
         deltaF = 0
         if (filter_type == "Low pass"):
@@ -249,9 +260,6 @@ class FIRFilterApp:
             deltaF = transition_band / fs
             F1Norm = (f1 / fs) + (deltaF / 2)
             F2Norm = (f2 / fs) - (deltaF / 2)
-
-
-
 
         if(stop_band_attenuation < 21):
             window = "rectangular"
@@ -289,10 +297,18 @@ class FIRFilterApp:
         self.coefficientsIndecies = resultIndices
         # messagebox.showinfo("NOW","Check your solution, upload the optimal solution file")
         test.Compare_Signals(outputFile,resultIndices,result)
-
         self.plot_results(resultIndices, result)
         messagebox.showinfo("NOW","Save your solution")
-        self.save_coefficients(resultIndices,result)  
+        self.save_coefficients(resultIndices,result)
+    
+    def convolve(self,a,b):
+        lenA,lenB = len(a) ,len(b)
+        result = [0]*(lenA+lenB-1)
+        for i in range(lenA):
+            for j in range(lenB):
+                result[i+j] += a[i]*b[j]
+        return result
+    
     def plot_results(self, indices, res):
         plt.plot(indices, res)
         plt.title('FIR Lowpass Filter Frequency Response')
@@ -300,18 +316,18 @@ class FIRFilterApp:
         plt.ylabel('Gain (dB)')
         plt.grid(True)
         plt.show()
-    
+
     def save_coefficients(self, indecis, coefficients):
         if len(indecis) != len(coefficients):
             messagebox.showerror("Error", "Lengths of 'indecis' and 'coefficients' must be the same.")
             return
-    
         file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
         if file_path:
             # Combine indecis and coefficients vertically
             data_to_save = np.column_stack((indecis, coefficients))
             np.savetxt(file_path, data_to_save, fmt='%d %.10f', delimiter=' ', newline='\n')
             messagebox.showinfo("Saved", "Data saved to {}".format(file_path))
+
 def main():
     root = tk.Tk()
     app = FIRFilterApp(root)
