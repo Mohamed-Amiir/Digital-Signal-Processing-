@@ -88,9 +88,6 @@ class DCTApp:
         input_data = [line.split() for line in input_data if line.strip()]
         indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
         # Define the signal samples
-        # Signal samples
-
-
 
         signal_samples = np.array(values)
 
@@ -124,7 +121,6 @@ class DCTApp:
         SignalSamplesAreEqual(expected_file_name, dct_coefficients)
 
         self.display_result(dct_coefficients)
-
 
     def remove_dct(self):
         file_name = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\Lab 5\\Task files\Remove DC component\\DC_component_input.txt"

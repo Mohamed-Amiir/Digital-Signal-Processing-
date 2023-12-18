@@ -78,8 +78,7 @@ class PracticalTask1:
         # self.fc_entry.grid(row=5, column=1, padx=10, pady=5)
 
         tk.Button(self.master, text="Resample", command=self.resampling).grid(row=13, column=0, columnspan=2, pady=10)
-    
-    
+
     def upsample(self,signal, factor):
         result = []
         for element in signal:
@@ -87,10 +86,10 @@ class PracticalTask1:
         for i in range(factor-1):
             result.pop()    
         return result
-    
+
     def downsample(self,signal, factor):
         return signal[::factor]
-    
+
     def upload_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
         if file_path:
@@ -102,7 +101,7 @@ class PracticalTask1:
         indices = np.array(x)
         values = np.array(y)
         return indices,values
-    
+
     def resampling(self):
         inputIndecis,input_signal = self.upload_file()
         filteredDataIndcies,filtered_signal = self.run_fir_filter()
@@ -139,7 +138,6 @@ class PracticalTask1:
         plt.legend()
         plt.show()
         # return resampled_signal
-
 
     def ecg(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
@@ -289,11 +287,6 @@ class PracticalTask1:
             F = self.calculate_BandStop_HD(F1norm,F2Norm,N) 
             output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 7\\BSFCoefficients.txt"
 
-        # elif(filter == "bandpass"):
-        #     F = self.calculate_BandPass_HD(FCnorm,N)   
-        # elif(filter == "lowpass"):
-        #     F = self.calculate_BandStop_HD(FCnorm,N)
-
         if(window == "rectangular"):
             W = self.calculate_Hamming(N)
         elif(window == "hanning"):
@@ -372,13 +365,14 @@ class PracticalTask1:
                 N = int(N)     
             else:
                 N = int(np.ceil(5.5 / deltaF))    
+        
         result, resultIndices, outputFile = self.FIR(filter_type,window,N, FCnormalized,F1Norm,F2Norm)
         self.coefficients = result
         self.coefficientsIndecies = resultIndices
-        # test.Compare_Signals(outputFile,resultIndices,result)
-        # self.plot_results(resultIndices, result)
-        # messagebox.showinfo("NOW","Save your solution")
-        # self.save_coefficients(resultIndices,result)
+        test.Compare_Signals(outputFile,resultIndices,result)
+        self.plot_results(resultIndices, result)
+        messagebox.showinfo("NOW","Save your solution")
+        self.save_coefficients(resultIndices,result)
         return resultIndices,result
 
     def convolve(self,a,b):
