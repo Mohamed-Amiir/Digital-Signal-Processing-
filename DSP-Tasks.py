@@ -12,6 +12,8 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 import numpy as np
 import matplotlib.pyplot as plt
+import CompareSignal as test
+
 #***************************** TASK 1 ******************************
 def browse_file_1():
     file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
@@ -1109,12 +1111,874 @@ def Task6():
         root.mainloop()
 
 #*******************************************************************
+        
+
+#***************************** TASK 7 ******************************
+def Task7():
+    class CrossCorrelationApp:
+        def __init__(self, root):
+            self.root = root
+            self.root.title("Cross-Correlation App")
+
+            # self.signal1_label = ttk.Label(root, text="Signal 1:")
+            # self.signal1_label.grid(row=0, column=0, padx=10, pady=10)
+
+            # self.signal1_entry = ttk.Entry(root)
+            # self.signal1_entry.grid(row=0, column=1, padx=10, pady=10)
+
+            # self.signal2_label = ttk.Label(root, text="Signal 2:")
+            # self.signal2_label.grid(row=1, column=0, padx=10, pady=10)
+
+            # self.signal2_entry = ttk.Entry(root)
+            # self.signal2_entry.grid(row=1, column=1, padx=10, pady=10)
+
+            self.calculate_button = ttk.Button(root, text="Calculate Correlation", command=self.calculate_correlation_and_time_delay)
+            self.calculate_button.grid(row=1, column=0, columnspan=2, pady=10)
+            # Listbox widgets for displaying correlation and normalized correlation arrays
+            self.correlation_listbox = tk.Listbox(root, selectmode=tk.SINGLE)
+            self.correlation_listbox.grid(row=3, column=0, padx=10, pady=10)
+            self.correlation_listbox_label = ttk.Label(root, text="Correlation Array:")
+            self.correlation_listbox_label.grid(row=2, column=0, padx=10, pady=10)
+
+            self.norm_correlation_listbox = tk.Listbox(root, selectmode=tk.SINGLE)
+            self.norm_correlation_listbox.grid(row=3, column=1, padx=10, pady=10)
+            self.norm_correlation_listbox_label = ttk.Label(root, text="Normalized Correlation Array:")
+            self.norm_correlation_listbox_label.grid(row=2, column=1, padx=10, pady=10)
+            self.sampling_period_label = ttk.Label(root, text="Sampling Period:")
+            self.sampling_period_label.grid(row=4, column=0, padx=10, pady=10)
+
+
+
+            self.calculate_button = ttk.Button(root, text="Calculate Time Delay", command=self.calclute_time_delay)
+            self.calculate_button.grid(row=6, column=0, columnspan=2, pady=10)
+            self.sampling_period_entry = ttk.Entry(root)
+            self.sampling_period_entry.grid(row=4, column=1, padx=10, pady=10)
+
+            
+            # Entry widget for displaying time delay
+            self.time_delay_label = ttk.Label(root, text="Time Delay:")
+            self.time_delay_label.grid(row=7, column=0, columnspan=2, padx=10, pady=10)
+            self.time_delay_entry = ttk.Entry(root, state='readonly')
+            self.time_delay_entry.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
+
+            self.matching_button = ttk.Button(root, text="Template Matching", command=self.template_matching)
+            self.matching_button.grid(row=9, column=0, columnspan=2, pady=10)
+            # # Matplotlib figure for displaying the signals and correlation result
+            # self.figure, self.ax = plt.subplots(3, 1, figsize=(6, 6), tight_layout=True)
+            # self.canvas = FigureCanvasTkAgg(self.figure, master=root)
+            # self.canvas_widget = self.canvas.get_tk_widget()
+            # self.canvas_widget.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+        def calclute_time_delay(self):
+            # test = [int(value) for value in values_str if value]
+
+            fs = float(self.sampling_period_entry.get())
+            ts = 1 / fs
+            signal1= []
+            file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+            if file_path:
+                with open(file_path, 'r') as file:
+                    td1 = file.read()
+            input_data = td1.split('\n')[3:]
+            input_data = [line.split() for line in input_data if line.strip()]
+            # indices1, signal1 = zip(*[(int(index), float(value)) for index, value in input_data])
+            for i in range(len(input_data)):
+                signal1.append(float(input_data[i][1]))
+            # ind1 = np.array(indices1)
+            # signal1 = np.array(values)
+
+            signal2 =[]
+            file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+            if file_path:
+                with open(file_path, 'r') as file:
+                    td2 = file.read()
+            input_data = td2.split('\n')[3:]
+            input_data = [line.split() for line in input_data if line.strip()]
+            # indices2, signal2 = zip(*[(int(index), float(value)) for index, value in input_data])
+            for i in range(len(input_data)):
+                signal2.append(float(input_data[i][1]))
+            # ind2 = np.array(indices2)
+            # signal2 = np.array(values)
+
+            #############calc correlation####################
+            # signal1 = [2, 1, 0, 0, 3]
+            # signal2 = [3, 2, 1, 1, 5]
+
+            corelation = []
+            normCorealtion = []
+            for n in range(len(signal1) + 1):
+                if n == 0:
+                    continue
+                else:
+                    signal2.append(signal2[0])
+                    signal2.remove(signal2[0])
+                r = 0
+                p = 0
+                for i in range(len(signal1)):
+                    r += (1 / len(signal1)) * (signal1[i] * signal2[i])
+                corelation.append(r)
+                sig1 = 0
+                sig2 = 0
+                for j in range(len(signal1)):
+                    sig1 += signal1[j] * signal1[j]
+                    sig2 += signal2[j] * signal2[j]
+                p = r / ((1 / len(signal1)) * np.power((sig1 * sig2), .5))
+                normCorealtion.append(p)
+                #################################################
+            x = []
+            x.append(corelation[len(corelation)-1])
+            for i in range(len(corelation)-1):
+                x.append(corelation[i])  
+            y = []
+            y.append(normCorealtion[len(normCorealtion)-1])
+            for i in range(len(normCorealtion)-1):
+                y.append(normCorealtion[i])      
+
+            corelation = x
+            normCorealtion = y    
+            # corelation.append(corelation[0])    
+            # corelation.remove(corelation[0])    
+            # normCorealtion.append(normCorealtion[0])
+            # normCorealtion.remove(normCorealtion[0])    
+            # Time delay analysis
+            max_corr_index = np.argmax(corelation)
+            time_delay = max_corr_index * ts
+            # Display time delay
+            self.time_delay_entry.config(state='normal')
+            self.time_delay_entry.delete(0, tk.END)
+            self.time_delay_entry.insert(0, f"{time_delay:.4f}")
+            self.time_delay_entry.config(state='readonly')
+            # print ("helloo")
+        def calculate_correlation_and_time_delay(self):
+            try:
+                signal1 = [2, 1, 0, 0, 3]
+                signal2 = [3, 2, 1, 1, 5]
+
+                corelation = []
+                normCorealtion = []
+                for n in range(len(signal1) + 1):
+                    if n == 0:
+                        continue
+                    else:
+                        signal2.append(signal2[0])
+                        signal2.remove(signal2[0])
+                    r = 0
+                    p = 0
+                    for i in range(len(signal1)):
+                        r += (1 / len(signal1)) * (signal1[i] * signal2[i])
+                    corelation.append(r)
+                    sig1 = 0
+                    sig2 = 0
+                    for j in range(len(signal1)):
+                        sig1 += signal1[j] * signal1[j]
+                        sig2 += signal2[j] * signal2[j]
+                    p = r / ((1 / len(signal1)) * np.power((sig1 * sig2), .5))
+                    normCorealtion.append(p)
+                x = []
+                x.append(corelation[len(corelation)-1])
+                for i in range(len(corelation)-1):
+                    x.append(corelation[i])  
+                y = []
+                y.append(normCorealtion[len(normCorealtion)-1])
+                for i in range(len(normCorealtion)-1):
+                    y.append(normCorealtion[i])      
+
+                corelation = x
+                normCorealtion = y
+                # Time delay analysis
+                # max_corr_index = np.argmax(corelation)
+                # time_delay = max_corr_index * sampling_period
+
+                # Display signals and correlation result
+
+                plt.subplot(1, 3, 1)
+                plt.plot(signal1, marker='o')
+                plt.plot(signal2, marker='o')
+                plt.title("Original")
+
+                plt.subplot(1, 3, 2)
+                plt.plot(corelation,marker='o')
+                plt.title("Cross Correlation")
+
+                plt.subplot(1,3,3)
+                plt.plot(normCorealtion)
+                plt.title("Normalized Cross Correlation")
+
+                plt.tight_layout()
+                plt.show()
+
+                # self.ax[0].clear()
+                # self.ax[0].plot(signal1, label='Signal 1')
+                # self.ax[0].plot(signal2, label='Signal 2')
+                # self.ax[0].legend()
+                # self.ax[0].set_title('Input Signals')
+
+                # self.ax[1].clear()
+                # self.ax[1].plot(corelation, label='Cross-Correlation')
+                # self.ax[1].legend()
+                # self.ax[1].set_title('Cross-Correlation')
+
+                # self.ax[2].clear()
+                # self.ax[2].plot(normCorealtion, label='Normalized Cross-Correlation')
+                # self.ax[2].legend()
+                # self.ax[2].set_title('Normalized Cross-Correlation')
+
+                # Update Listbox widgets with correlation and normalized correlation arrays
+                self.correlation_listbox.delete(0, tk.END)
+                self.norm_correlation_listbox.delete(0, tk.END)
+
+                for corr_val, norm_corr_val in zip(corelation, normCorealtion):
+                    self.correlation_listbox.insert(tk.END, f"{corr_val:.4f}")
+                    self.norm_correlation_listbox.insert(tk.END, f"{norm_corr_val:.4f}")
+
+                # Display time delay
+                # self.time_delay_entry.config(state='normal')
+                # self.time_delay_entry.delete(0, tk.END)
+                # self.time_delay_entry.insert(0, f"{time_delay:.4f}")
+                # self.time_delay_entry.config(state='readonly')
+
+                # self.canvas.draw()
+
+            except ValueError as e:
+                tk.messagebox.showerror("Error", str(e))
+        def template_matching(self):
+            down = []
+            up = []
+            class11 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down1.txt"
+            class12 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down2.txt"
+            class13 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down3.txt"
+            class14 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down4.txt"
+            class15 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 1\\down5.txt"
+
+            class21 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up1.txt"
+            class22 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up2.txt"
+            class23 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up3.txt"
+            class24 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up4.txt"
+            class25 = "D:\\Studying\\Level 4 sem 1\\Digital Signal Processing\\Labs\\Lab7\\SC and Csys\\Task Files\\point3 Files\\Class 2\\up5.txt"
+            class1 = [class11, class12, class13, class14, class15]
+            class2 = [class21, class22, class23, class24, class25]
+
+
+            for i in range(5):
+                with open(class1[i], 'r') as file:
+                    content = file.read()
+                values_str = content.split('\n')
+                values_int = [int(value) for value in values_str if value]
+                values_array = np.array(values_int)
+                down.append(values_array)
+            for i in range(5):
+                with open(class2[i], 'r') as file:
+                    content = file.read()
+                values_str = content.split('\n')
+                values_int = [int(value) for value in values_str if value]
+                values_array = np.array(values_int)
+                up.append(values_array)
+
+
+            downAvg = []
+            upAvg = []
+            # for i in range(251):
+            #     x = 0
+            #     y = 0
+            #     x = down[0][i] + down[1][i]+ down[2][i] + down[3][i] + down[4][i]
+            #     a = x / 5
+            #     downAvg.append(a)
+            for i in range(251):
+                x = 0
+                y = 0
+                for j in range(5):
+                    x += down[j][i]
+                    y += up[j][i]
+                a = x / 5
+                a2 = y / 5
+                downAvg.append(a)
+                upAvg.append(a2)
+            # NOW WE HAVE THE AVG OF CLASS 1 AND THE AVG OF CLASS 2
+            # NOW WE WILL COLLERATE THE TEST WITH BOTH OF THEM AND DETECT THE HIGHEST CORRELATION
+            file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+            with open(file_path, 'r') as file:
+                content = file.read()
+            values_str = content.split('\n')
+            test = [int(value) for value in values_str if value]
+            # test = np.array(values_int)
+            test2 = test
+            # NOW WE WILL COLERRATE ( downAvg and test ) and ( upAvg and test )
+            # THEN WE GET TWO ARRAYS OF COLERRATION , THEN WE WILL MAXIMIZE BETWEEN THE MAXIMUM VALUES OF EACH ARRAY
+            # print("Hello world")
+            class1Corelation = []
+            class1NormCorealtion = []
+            for n in range(len(downAvg) + 1):
+                if n == 0:
+                    continue
+                else:
+                    test.append(test[0])
+                    test.remove(test[0])
+                r = 0
+                p = 0
+                for i in range(len(downAvg)):
+                    r += (1 / len(downAvg)) * (downAvg[i] * downAvg[i])
+                class1Corelation.append(r)
+                sig1 = 0
+                sig2 = 0
+                for j in range(len(downAvg)):
+                    sig1 += downAvg[j] * downAvg[j]
+                    sig2 += test[j] * test[j]
+                p = r / ((1 / len(downAvg)) * np.power((sig1 * sig2), .5))
+                class1NormCorealtion.append(p)
+
+
+            class2Corelation = []
+            class2NormCorealtion = []
+            for n in range(len(upAvg) + 1):
+                if n == 0:
+                    continue
+                else:
+                    test2.append(test2[0])
+                    test2.remove(test2[0])
+                r = 0
+                p = 0
+                for i in range(len(upAvg)):
+                    r += (1 / len(upAvg)) * (upAvg[i] * upAvg[i])
+                class2Corelation.append(r)
+                sig1 = 0
+                sig2 = 0
+                for j in range(len(upAvg)):
+                    sig1 += downAvg[j] * downAvg[j]
+                    sig2 += test[j] * test[j]
+                p = r / ((1 / len(upAvg)) * np.power((sig1 * sig2), .5))
+                class2NormCorealtion.append(p)
+
+            CLASS1 = np.argmax(class1NormCorealtion)
+            CLASS2 = np.argmax(class2NormCorealtion)
+            if CLASS1 > CLASS2:
+                print("Class 1")
+            else:
+                print("Class 2")
+
+    root = tk.Tk()
+    app = CrossCorrelationApp(root)
+    root.mainloop()        
+#*******************************************************************
+#***************************** TASK 8 ******************************
+def Task8():
+    def plot_signal(ax, signal, title, color):
+        ax.stem(signal, basefmt=color + '-', markerfmt=color + 'o', label=title)
+        ax.legend()
+        ax.set_title(title)
+
+    def perform_convolution():
+
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+        input_data = file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        InputIndicesSignal1 = np.array(indices)
+        signal1 = np.array(values)
+
+        # InputIndicesSignal1 = [-2, -1, 0, 1]
+        # InputSamplesSignal1 = [1, 2, 1, 1]
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+        input_data = file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        InputIndicesSignal2 = np.array(indices)
+        signal2 = np.array(values)
+
+        # InputIndicesSignal2 = [0, 1, 2, 3, 4, 5]
+        # InputSamplesSignal2 = [1, -1, 0, 0, 1, 1]
+
+        # Create two example signals
+        # signal1 = np.array([1, 2, 3, 4])
+        # signal2 = np.array([0.5, 1, 0.5])
+
+        # Perform convolution in the frequency domain
+        result_size = len(signal1) + len(signal2) - 1
+        fft_signal1 = np.fft.fft(signal1, result_size)
+        fft_signal2 = np.fft.fft(signal2, result_size)
+        conv_freq = np.fft.ifft(fft_signal1 * fft_signal2)
+
+        # Plot each signal in an independent window
+        fig, axs = plt.subplots(3, 1, figsize=(6, 12))
+        plot_signal(axs[0], signal1, 'Signal 1', 'b')
+        plot_signal(axs[1], signal2, 'Signal 2', 'g')
+        plot_signal(axs[2], np.real(conv_freq), 'Convolution (Frequency Domain)', 'm')
+        plt.show()
+
+    def perform_correlation():
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+        input_data = file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        InputIndicesSignal1 = np.array(indices)
+        signal1 = np.array(values)
+
+        # InputIndicesSignal1 = [-2, -1, 0, 1]
+        # InputSamplesSignal1 = [1, 2, 1, 1]
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+        input_data = file_content.split('\n')[3:]
+        input_data = [line.split() for line in input_data if line.strip()]
+        indices, values = zip(*[(int(index), float(value)) for index, value in input_data])
+        InputIndicesSignal2 = np.array(indices)
+        signal2 = np.array(values)
+
+        # InputIndicesSignal2 = [0, 1, 2, 3, 4, 5]
+        # InputSamplesSignal2 = [1, -1, 0, 0, 1, 1]
+
+        # Create two example signals
+        # signal1 = np.array([1, 2, 3, 4])
+        # signal2 = np.array([0.5, 1, 0.5])l
+
+        result_size = len(signal1) + len(signal2) - 1
+        fft_signal1 = np.fft.fft(signal1, result_size)
+        fft_signal2 = np.fft.fft(signal2, result_size)
+        corr_freq = np.fft.ifft(fft_signal1.conjugate() * fft_signal2)
+
+        fig, axs = plt.subplots(3, 1, figsize=(6, 12))
+        plot_signal(axs[0], signal1, 'Signal 1', 'b')
+        plot_signal(axs[1], signal2, 'Signal 2', 'g')
+        plot_signal(axs[2], np.real(corr_freq), 'Correlation (Frequency Domain)', 'm')
+        plt.show()
+
+    # Create the main window
+    root = tk.Tk()
+    root.geometry("300x100")
+    root.title("Fast Convolution and Correlation GUI")
+
+    # Create buttons to perform convolution and correlation
+    button_convolution = ttk.Button(root, text="Perform Convolution", command=perform_convolution)
+    button_convolution.grid(row=2, column=0, pady=10, padx=5)
+
+    button_correlation = ttk.Button(root, text="Perform Correlation", command=perform_correlation)
+    button_correlation.grid(row=2, column=1, pady=10, padx=5)
+
+    # Start the Tkinter main loop
+    root.mainloop()
+
+#*******************************************************************
+#***************************** TASK 9 ******************************
+def Task9():
+    class PracticalTask1:
+
+        def __init__(self, master):
+            self.master = master
+            self.master.title("FIR Filter Application")
+            # Initialize variables
+            self.filter_type_var = tk.StringVar(value='Low pass')
+            self.fs_var = tk.DoubleVar(value=0)
+            self.stop_band_attenuation_var = tk.IntVar(value=0)
+            self.fc_var = tk.DoubleVar(value=0)
+            self.f1_var = tk.DoubleVar(value=0)
+            self.f2_var = tk.DoubleVar(value=0)
+            self.M_var = tk.IntVar(value=0)
+            self.L_var = tk.IntVar(value=0)
+            self.transition_band_var = tk.DoubleVar(value=0)
+            self.lp_coefficients = None
+            # Create GUI elements
+            self.create_widgets()
+
+        def create_widgets(self):
+            tk.Label(self.master, text="Filter Type:").grid(row=0, column=0, padx=10, pady=5)
+            filter_types = ['Low pass', 'High pass', 'Band pass', 'Band stop']
+            self.filter_type_menu = tk.OptionMenu(self.master, self.filter_type_var, *filter_types)
+            self.filter_type_menu.grid(row=0, column=1, padx=10, pady=5)
+
+            tk.Label(self.master, text="FS:").grid(row=1, column=0, padx=10, pady=5)
+            self.fs_entry = tk.Entry(self.master, textvariable=self.fs_var, width=50)
+            self.fs_entry.grid(row=1, column=1, padx=10, pady=5)
+
+            tk.Label(self.master, text="Stop Band Attenuation:").grid(row=2, column=0, padx=10, pady=5)
+            self.stop_band_attenuation_entry = tk.Entry(self.master, textvariable=self.stop_band_attenuation_var, width=50)
+            self.stop_band_attenuation_entry.grid(row=2, column=1, padx=10, pady=5)
+
+            tk.Label(self.master, text="FC:").grid(row=3, column=0, padx=10, pady=5)
+            self.fc_entry = tk.Entry(self.master, textvariable=self.fc_var, width=50)
+            self.fc_entry.grid(row=3, column=1, padx=10, pady=5)
+
+            tk.Label(self.master, text="F1:").grid(row=4, column=0, padx=10, pady=5)
+            self.fc_entry = tk.Entry(self.master, textvariable=self.f1_var, width=50)
+            self.fc_entry.grid(row=4, column=1, padx=10, pady=5)
+
+            tk.Label(self.master, text="F2:").grid(row=5, column=0, padx=10, pady=5)
+            self.fc_entry = tk.Entry(self.master, textvariable=self.f2_var, width=50)
+            self.fc_entry.grid(row=5, column=1, padx=10, pady=5)
+
+            tk.Label(self.master, text="TW:").grid(row=6, column=0, padx=10, pady=5)
+            self.transition_band_entry = tk.Entry(self.master, textvariable=self.transition_band_var, width=50)
+            self.transition_band_entry.grid(row=6, column=1, padx=10, pady=5)
+            # Button to load values from file
+            load_button = tk.Button(self.master, text="Load from File", command=self.load_values_from_file)
+            load_button.grid(row=7, column=0, columnspan=2, pady=10)
+
+            self.coefficients = []
+            self.coefficientsIndecies = []
+            # Button to run the FIR filter
+            tk.Button(self.master, text="Run FIR Filter", command=self.run_fir_filter).grid(row=8, column=0, columnspan=2, pady=10)
+            ecg_button = tk.Button(self.master, text="ECG", command=self.ecg)
+            ecg_button.grid(row=9, column=0, columnspan=2, pady=10)
+
+            tk.Label(self.master, text="Resampling").grid(row=10, column=0, columnspan=2, pady=10)
+
+            tk.Label(self.master, text="M").grid(row=11, column=0, padx=10, pady=5)
+            self.M_entry = tk.Entry(self.master, textvariable=self.M_var, width=25)
+            self.M_entry.grid(row=11, column=1, padx=10, pady=5)
+
+            tk.Label(self.master, text="L").grid(row=12, column=0, padx=10, pady=5)
+            self.L_entry = tk.Entry(self.master, textvariable=self.L_var, width=25)
+            self.L_entry.grid(row=12, column=1, padx=10, pady=5)
+
+            # tk.Label(self.master, text="L").grid(row=5, column=0, padx=10, pady=5)
+            # self.fc_entry = tk.Entry(self.master, textvariable=self.f2_var, width=50)
+            # self.fc_entry.grid(row=5, column=1, padx=10, pady=5)
+
+            tk.Button(self.master, text="Resample", command=self.resampling).grid(row=13, column=0, columnspan=2, pady=10)
+
+        def upsample(self,signal, factor):
+            result = []
+            for element in signal:
+                result.extend([element] + [0] * (factor-1))
+            for i in range(factor-1):
+                result.pop()    
+            return result
+
+        def downsample(self,signal, factor):
+            return signal[::factor]
+
+        def upload_file(self):
+            file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+            if file_path:
+                with open(file_path, 'r') as file:
+                    self.file_content = file.read()
+            input_data = self.file_content.split('\n')[3:]
+            input_data = [line.split() for line in input_data if line.strip()]
+            x, y = zip(*[(int(index), float(value)) for index, value in input_data])
+            indices = np.array(x)
+            values = np.array(y)
+            return indices,values
+
+        def resampling(self):
+            inputIndecis,input_signal = self.upload_file()
+            filteredDataIndcies,filtered_signal = self.run_fir_filter()
+            M = (self.M_var.get())
+            L = (self.L_var.get())
+            ###########################################################
+            if M == 0 and L == 0:
+                return "Error: Both M and L cannot be zero."
+            if M == 0:
+                x = self.upsample(input_signal, L)
+                resampled_signal = self.convolve(x,filtered_signal)
+            elif L == 0:
+                x = self.convolve(filtered_signal,input_signal)
+                resampled_signal = self.downsample(x, M)
+            else:
+                # Fractional rate change: upsample, filter, downsample
+                upsampled_signal = self.upsample(input_signal, L)
+                x = self.convolve(filtered_signal,upsampled_signal)
+                resampled_signal = self.downsample(x, M)
+            indecis =  []
+            for i in range(int(-(len(filtered_signal)/2)),int( len(resampled_signal) - (len(filtered_signal)/2))+1):
+                indecis.append(i)
+            
+            result = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+            test.Compare_Signals(result,indecis,resampled_signal)
+            # print(resampled_signal)
+            # print(len(resampled_signal))
+            # Display the result
+            plt.plot(input_signal, label="Original Signal")
+            plt.plot(resampled_signal, label="Resampled Signal")
+            plt.title("Original vs. Resampled Signal")
+            plt.xlabel("Sample Index")
+            plt.ylabel("Amplitude")
+            plt.legend()
+            plt.show()
+            # return resampled_signal
+
+        def ecg(self):
+            file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+            if file_path:
+                with open(file_path, 'r') as file:
+                    file_content = file.read()
+            input_data = file_content.split('\n')[3:]
+            input_data = [line.split() for line in input_data if line.strip()]
+            indices, ecg400 = zip(*[(int(index), float(value)) for index, value in input_data])
+            # ind = np.array(indices)
+            # ecg400 = np.array(values)
+
+            ecgResult = self.convolve(ecg400, self.coefficients)
+            INDCIS = []
+            start_index = self.coefficientsIndecies[0]
+            end_index = 400 + abs(start_index)
+            for i in range(start_index,end_index):
+                INDCIS.append(i)
+
+            # indic = np.arange(start_index, end_index + 1)
+
+            # Extract the portion of the convolution result within the specified range
+            # ecgResult_subset = ecgResult[start_index:end_index + 1]
+
+            # indices = np.arange(len(ecgResult))
+
+            plt.plot(ecgResult)
+            plt.title('ECG')
+            plt.xlabel('Frequency (Hz)')
+            plt.ylabel('Gain (dB)')
+            plt.grid(True)
+            plt.show()
+            messagebox.showinfo("NOW","Save the Result")
+            self.save_coefficients(INDCIS,ecgResult)
+            messagebox.showinfo("NOW","Check your solution, upload the optimal solution file")
+            filePath = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+            test.Compare_Signals(filePath,INDCIS,ecgResult)
+
+        def load_values_from_file(self):
+            file_path = filedialog.askopenfilename(title="Select Input File", filetypes=[("Text files", "*.txt")])
+            if file_path:
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        key, value = line.strip().split('=')
+                        key = key.strip().lower()
+                        value = value.strip()
+                        if key == 'filtertype':
+                            self.filter_type_var.set(value)
+                        elif key == 'fs':
+                            self.fs_var.set(float(value))
+                        elif key == 'f1':
+                            self.f1_var.set(float(value))
+                        elif key == 'f2':
+                            self.f2_var.set(float(value))
+                        elif key == 'stopbandattenuation':
+                            self.stop_band_attenuation_var.set(float(value))
+                        elif key == 'fc':
+                            self.fc_var.set(float(value))
+                        elif key == 'transitionband':
+                            self.transition_band_var.set(float(value))     
+
+        def calculate_LowPass_HD(self,FCnorm, N):
+            result = []
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):
+                x = 0
+                if (n == 0):
+                    x = 2 * FCnorm
+                else:    
+                    x = 2 * FCnorm * ((np.sin(n * 2 * np.pi * FCnorm)) / (n * 2 * np.pi * FCnorm))
+                result.append(x)    
+            
+            return result
+
+        def calculate_HighPass_HD(self,FCnorm,  N):
+            result = []
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):
+                x = 0
+                if (n == 0):
+                    x = 1 - (2 * FCnorm)
+                else:    
+                    x = -2 * FCnorm * ((np.sin(n * 2 * np.pi * FCnorm)) / (n * 2 * np.pi * FCnorm))
+                result.append(x)    
+            
+            return result
+
+        def calculate_BandPass_HD(self,F1,F2, N):
+            result = []
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):
+                x = 0
+                if (n == 0):
+                    x = 2 * (F2-F1)
+                else: 
+                    a = 2 * F2 * ((np.sin(n * 2 * np.pi * F2)) / (n * 2 * np.pi * F2))
+                    b = -2 * F1 * ((np.sin(n * 2 * np.pi * F1)) / (n * 2 * np.pi * F1))
+                    x = float(a + b)
+                result.append(x)    
+            
+            return result
+
+        def calculate_BandStop_HD(self,F1,F2, N):
+            result = []
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):
+                x = 0
+                if (n == 0):
+                    x = 1 - (2 * (F2-F1))
+                else:    
+                    x = (2 * F1 * ((np.sin(n * 2 * np.pi * F1)) / (n * 2 * np.pi * F1)))+(-2 * F2 * ((np.sin(n * 2 * np.pi * F2)) / (n * 2 * np.pi * F2)))
+                result.append(x)    
+            
+            return result   
+
+        def calculate_Hamming(self, N):
+            result = []
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):  
+                x = 0.54 + 0.46 * np.cos((2 * np.pi * n) / N)
+                result.append(x)    
+            return result   
+
+        def calculte_Haning(self,N):
+            result = []
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):  
+                x = 0.5 + 0.5 * np.cos((2 * np.pi * n) / N)
+                result.append(x)    
+            return result 
+
+        def calculte_Blackman(self,N):
+            result = []
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):  
+                x = .42+.5 * np.cos((2 * np.pi * n)/(N-1)) + .08 * np.cos((4 * np.pi * n)/(N - 1))
+                result.append(x)    
+            return result 
+
+        def FIR(self,filter,window,N, FCnorm,F1norm,F2Norm):
+            F = []
+            W = []
+            output_file = ""
+            if(filter == "Low pass"):
+                F = self.calculate_LowPass_HD(FCnorm,N)
+                output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 1\\LPFCoefficients.txt"
+            elif(filter == "High pass"):
+                F = self.calculate_HighPass_HD(FCnorm,N) 
+                output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 3\\HPFCoefficients.txt"
+            elif(filter == "Band pass"):
+                F = self.calculate_BandPass_HD(F1norm,F2Norm,N) 
+                output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 5\\BPFCoefficients.txt"
+            elif(filter == "Band stop"):
+                F = self.calculate_BandStop_HD(F1norm,F2Norm,N) 
+                output_file = "C:\\Users\\lenovo\\Desktop\\My-Github\\DSP\\Task9\\FIR test cases\\Testcase 7\\BSFCoefficients.txt"
+
+            if(window == "rectangular"):
+                W = self.calculate_Hamming(N)
+            elif(window == "hanning"):
+                W = self.calculte_Haning(N)   
+            elif(window == "hamming"):
+                W = self.calculate_Hamming(N)   
+            elif(window == "blackman"):
+                W = self.calculte_Blackman(N)   
+
+            H = []
+            indices = []
+            for i in range(N):
+                H.append(W[i]*F[i])
+
+            for n in range(int(-(N // 2)), int((N // 2) + 1)):
+                indices.append(n)
+            return H, indices,output_file
+
+        def run_fir_filter(self):
+            filter_type = self.filter_type_var.get()
+            fs = (self.fs_var.get())/1000
+            f1 = (self.f1_var.get())/1000
+            f2 = (self.f2_var.get())/1000
+            stop_band_attenuation = int(self.stop_band_attenuation_var.get())
+            fc = float(self.fc_var.get())/1000
+            transition_band = float(self.transition_band_var.get())/1000
+            N = 0
+            FCnormalized = 0 
+            F1Norm = 0
+            F2Norm = 0
+            window = ""    
+            deltaF = 0
+            if (filter_type == "Low pass"):
+                deltaF = transition_band / fs
+                FCnormalized = (fc / fs) + (deltaF / 2)
+            elif (filter_type == "High pass"):
+                deltaF = transition_band / fs
+                FCnormalized = (fc / fs) - (deltaF / 2)
+            elif (filter_type == "Band pass"):
+                deltaF = transition_band / fs
+                F1Norm = (f1 / fs) - (deltaF / 2)
+                F2Norm = (f2 / fs) + (deltaF / 2)
+            elif (filter_type == "Band stop"):
+                deltaF = transition_band / fs
+                F1Norm = (f1 / fs) + (deltaF / 2)
+                F2Norm = (f2 / fs) - (deltaF / 2)
+
+            if(stop_band_attenuation < 21):
+                window = "rectangular"
+                N = 0.9 / deltaF
+                if int(N) % 2 != 0:
+                    N = int(N)
+                else:
+                    N = int(np.ceil(0.9 / deltaF))
+            elif(stop_band_attenuation < 44):
+                window = "hanning"
+                N = 3.1 / deltaF
+                if int(N) % 2 != 0:
+                    N = int(N)
+                else:
+                    N = int(np.ceil(3.1 / deltaF))
+            elif( stop_band_attenuation < 53 ):
+                window = "hamming"  
+                N = 3.3 / deltaF
+                if int(N) % 2 != 0:
+                    N = int(N)
+                else:
+                    N = int(np.ceil(3.3 / deltaF))
+            elif(stop_band_attenuation < 74):
+                window = "blackman"  
+                N = 5.5 / deltaF
+                if int(N) % 2 != 0:
+                    N = int(N)
+                elif N % 2 == 0:
+                    N = N + 1 
+                    N = int(N)     
+                else:
+                    N = int(np.ceil(5.5 / deltaF))    
+            
+            result, resultIndices, outputFile = self.FIR(filter_type,window,N, FCnormalized,F1Norm,F2Norm)
+            self.coefficients = result
+            self.coefficientsIndecies = resultIndices
+            test.Compare_Signals(outputFile,resultIndices,result)
+            self.plot_results(resultIndices, result)
+            messagebox.showinfo("NOW","Save your solution")
+            self.save_coefficients(resultIndices,result)
+            return resultIndices,result
+
+        def convolve(self,a,b):
+            lenA,lenB = len(a) ,len(b)
+            result = [0]*(lenA+lenB-1)
+            for i in range(lenA):
+                for j in range(lenB):
+                    result[i+j] += a[i]*b[j]
+            return result
+
+        def plot_results(self, indices, res):
+            plt.plot(indices, res)
+            plt.title('FIR Lowpass Filter Frequency Response')
+            plt.xlabel('Frequency (Hz)')
+            plt.ylabel('Gain (dB)')
+            plt.grid(True)
+            plt.show()
+
+        def save_coefficients(self, indecis, coefficients):
+            if len(indecis) != len(coefficients):
+                messagebox.showerror("Error", "Lengths of 'indecis' and 'coefficients' must be the same.")
+                return
+            file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+            if file_path:
+                # Combine indecis and coefficients vertically
+                data_to_save = np.column_stack((indecis, coefficients))
+                np.savetxt(file_path, data_to_save, fmt='%d %.10f', delimiter=' ', newline='\n')
+                messagebox.showinfo("Saved", "Data saved to {}".format(file_path))
+
+    root = tk.Tk()
+    app = PracticalTask1(root)
+    root.mainloop()
+    
+#*******************************************************************
+        
 
 #***************************** Packege ******************************
 
 # Create the main application window
 root = tk.Tk()
 root.title("Task Switcher")
+root.geometry("200x300")
 
 # Create a variable to hold the currently selected task
 current_task = tk.StringVar(value="Task 1")
@@ -1127,6 +1991,9 @@ task_radio3 = tk.Radiobutton(root, text="Task 3", variable=current_task, value="
 task_radio4 = tk.Radiobutton(root, text="Task 4", variable=current_task, value="Task 4", command=Task3)
 task_radio5 = tk.Radiobutton(root, text="Task 5", variable=current_task, value="Task 5", command=Task5)
 task_radio6 = tk.Radiobutton(root, text="Task 6", variable=current_task, value="Task 6", command=Task6)
+task_radio7 = tk.Radiobutton(root, text="Task 7", variable=current_task, value="Task 7", command=Task7)
+task_radio8 = tk.Radiobutton(root, text="Task 8", variable=current_task, value="Task 8", command=Task8)
+task_radio9 = tk.Radiobutton(root, text="Task 9", variable=current_task, value="Task 9", command=Task9)
 
 # Create a label to display the selected task
 task_label = tk.Label(root, text="Select a task:")
@@ -1138,6 +2005,9 @@ task_radio3.pack()
 task_radio4.pack()
 task_radio5.pack()
 task_radio6.pack()
+task_radio7.pack()
+task_radio8.pack()
+task_radio9.pack()
 task_label.pack()
 
 # Start the main event loop
